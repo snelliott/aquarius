@@ -713,48 +713,48 @@ void CFOURGradient::readIntegrals(const Arena& arena)
     H.getAI() = 0;
     H.getIA() = 0;
 
-    //this->log(arena) << "ABCD: " << setprecision(15) << H.getABCD()({2,0},{2,0}).norm(2) << endl;
-    //this->log(arena) << "AbCd: " << setprecision(15) << H.getABCD()({1,0},{1,0}).norm(2) << endl;
-    //this->log(arena) << "abcd: " << setprecision(15) << H.getABCD()({0,0},{0,0}).norm(2) << endl;
-    //this->log(arena) << "ABCI: " << setprecision(15) << H.getABCI()({2,0},{1,1}).norm(2) << endl;
-    //this->log(arena) << "AbCi: " << setprecision(15) << H.getABCI()({1,0},{1,0}).norm(2) << endl;
-    //this->log(arena) << "AbcI: " << setprecision(15) << H.getABCI()({1,0},{0,1}).norm(2) << endl;
-    //this->log(arena) << "abci: " << setprecision(15) << H.getABCI()({0,0},{0,0}).norm(2) << endl;
-    //this->log(arena) << "AIBC: " << setprecision(15) << H.getAIBC()({1,1},{2,0}).norm(2) << endl;
-    //this->log(arena) << "AiBc: " << setprecision(15) << H.getAIBC()({1,0},{1,0}).norm(2) << endl;
-    //this->log(arena) << "aIBc: " << setprecision(15) << H.getAIBC()({0,1},{1,0}).norm(2) << endl;
-    //this->log(arena) << "aibc: " << setprecision(15) << H.getAIBC()({0,0},{0,0}).norm(2) << endl;
-    //this->log(arena) << "ABIJ: " << setprecision(15) << H.getABIJ()({2,0},{0,2}).norm(2) << endl;
-    //this->log(arena) << "AbIj: " << setprecision(15) << H.getABIJ()({1,0},{0,1}).norm(2) << endl;
-    //this->log(arena) << "abij: " << setprecision(15) << H.getABIJ()({0,0},{0,0}).norm(2) << endl;
-    //this->log(arena) << "AIBJ: " << setprecision(15) << H.getAIBJ()({1,1},{1,1}).norm(2) << endl;
-    //this->log(arena) << "AiBj: " << setprecision(15) << H.getAIBJ()({1,0},{1,0}).norm(2) << endl;
-    //this->log(arena) << "aIbJ: " << setprecision(15) << H.getAIBJ()({0,1},{0,1}).norm(2) << endl;
-    //this->log(arena) << "AibJ: " << setprecision(15) << H.getAIBJ()({1,0},{0,1}).norm(2) << endl;
-    //this->log(arena) << "aIBj: " << setprecision(15) << H.getAIBJ()({0,1},{1,0}).norm(2) << endl;
-    //this->log(arena) << "aibj: " << setprecision(15) << H.getAIBJ()({0,0},{0,0}).norm(2) << endl;
-    //this->log(arena) << "IJAB: " << setprecision(15) << H.getIJAB()({0,2},{2,0}).norm(2) << endl;
-    //this->log(arena) << "IjAb: " << setprecision(15) << H.getIJAB()({0,1},{1,0}).norm(2) << endl;
-    //this->log(arena) << "ijab: " << setprecision(15) << H.getIJAB()({0,0},{0,0}).norm(2) << endl;
-    //this->log(arena) << "AIJK: " << setprecision(15) << H.getAIJK()({1,1},{0,2}).norm(2) << endl;
-    //this->log(arena) << "AiJk: " << setprecision(15) << H.getAIJK()({1,0},{0,1}).norm(2) << endl;
-    //this->log(arena) << "aIJk: " << setprecision(15) << H.getAIJK()({0,1},{0,1}).norm(2) << endl;
-    //this->log(arena) << "aijk: " << setprecision(15) << H.getAIJK()({0,0},{0,0}).norm(2) << endl;
-    //this->log(arena) << "IJAK: " << setprecision(15) << H.getIJAK()({0,2},{1,1}).norm(2) << endl;
-    //this->log(arena) << "IjAk: " << setprecision(15) << H.getIJAK()({0,1},{1,0}).norm(2) << endl;
-    //this->log(arena) << "IjaK: " << setprecision(15) << H.getIJAK()({0,1},{0,1}).norm(2) << endl;
-    //this->log(arena) << "ijak: " << setprecision(15) << H.getIJAK()({0,0},{0,0}).norm(2) << endl;
-    //this->log(arena) << "IJKL: " << setprecision(15) << H.getIJKL()({0,2},{0,2}).norm(2) << endl;
-    //this->log(arena) << "IjKl: " << setprecision(15) << H.getIJKL()({0,1},{0,1}).norm(2) << endl;
-    //this->log(arena) << "ijkl: " << setprecision(15) << H.getIJKL()({0,0},{0,0}).norm(2) << endl;
-    //this->log(arena) << "AB:   " << setprecision(15) << H.getAB()({1,0},{1,0}).norm(2) << endl;
-    //this->log(arena) << "ab:   " << setprecision(15) << H.getAB()({0,0},{0,0}).norm(2) << endl;
-    //this->log(arena) << "AI:   " << setprecision(15) << H.getAI()({1,0},{0,1}).norm(2) << endl;
-    //this->log(arena) << "ai:   " << setprecision(15) << H.getAI()({0,0},{0,0}).norm(2) << endl;
-    //this->log(arena) << "IA:   " << setprecision(15) << H.getIA()({0,1},{1,0}).norm(2) << endl;
-    //this->log(arena) << "ia:   " << setprecision(15) << H.getIA()({0,0},{0,0}).norm(2) << endl;
-    //this->log(arena) << "IJ:   " << setprecision(15) << H.getIJ()({0,1},{0,1}).norm(2) << endl;
-    //this->log(arena) << "ij:   " << setprecision(15) << H.getIJ()({0,0},{0,0}).norm(2) << endl;
+   //this->log(arena) << "ABCD: " << setprecision(15) << H.getABCD()({2,0},{2,0}).norm(2) << endl;
+   //this->log(arena) << "AbCd: " << setprecision(15) << H.getABCD()({1,0},{1,0}).norm(2) << endl;
+   //this->log(arena) << "abcd: " << setprecision(15) << H.getABCD()({0,0},{0,0}).norm(2) << endl;
+   //this->log(arena) << "ABCI: " << setprecision(15) << H.getABCI()({2,0},{1,1}).norm(2) << endl;
+   //this->log(arena) << "AbCi: " << setprecision(15) << H.getABCI()({1,0},{1,0}).norm(2) << endl;
+   //this->log(arena) << "AbcI: " << setprecision(15) << H.getABCI()({1,0},{0,1}).norm(2) << endl;
+   //this->log(arena) << "abci: " << setprecision(15) << H.getABCI()({0,0},{0,0}).norm(2) << endl;
+   //this->log(arena) << "AIBC: " << setprecision(15) << H.getAIBC()({1,1},{2,0}).norm(2) << endl;
+   //this->log(arena) << "AiBc: " << setprecision(15) << H.getAIBC()({1,0},{1,0}).norm(2) << endl;
+   //this->log(arena) << "aIBc: " << setprecision(15) << H.getAIBC()({0,1},{1,0}).norm(2) << endl;
+   //this->log(arena) << "aibc: " << setprecision(15) << H.getAIBC()({0,0},{0,0}).norm(2) << endl;
+   //this->log(arena) << "ABIJ: " << setprecision(15) << H.getABIJ()({2,0},{0,2}).norm(2) << endl;
+   //this->log(arena) << "AbIj: " << setprecision(15) << H.getABIJ()({1,0},{0,1}).norm(2) << endl;
+   //this->log(arena) << "abij: " << setprecision(15) << H.getABIJ()({0,0},{0,0}).norm(2) << endl;
+   //this->log(arena) << "AIBJ: " << setprecision(15) << H.getAIBJ()({1,1},{1,1}).norm(2) << endl;
+   //this->log(arena) << "AiBj: " << setprecision(15) << H.getAIBJ()({1,0},{1,0}).norm(2) << endl;
+   //this->log(arena) << "aIbJ: " << setprecision(15) << H.getAIBJ()({0,1},{0,1}).norm(2) << endl;
+   //this->log(arena) << "AibJ: " << setprecision(15) << H.getAIBJ()({1,0},{0,1}).norm(2) << endl;
+   //this->log(arena) << "aIBj: " << setprecision(15) << H.getAIBJ()({0,1},{1,0}).norm(2) << endl;
+   //this->log(arena) << "aibj: " << setprecision(15) << H.getAIBJ()({0,0},{0,0}).norm(2) << endl;
+   //this->log(arena) << "IJAB: " << setprecision(15) << H.getIJAB()({0,2},{2,0}).norm(2) << endl;
+   //this->log(arena) << "IjAb: " << setprecision(15) << H.getIJAB()({0,1},{1,0}).norm(2) << endl;
+   //this->log(arena) << "ijab: " << setprecision(15) << H.getIJAB()({0,0},{0,0}).norm(2) << endl;
+   //this->log(arena) << "AIJK: " << setprecision(15) << H.getAIJK()({1,1},{0,2}).norm(2) << endl;
+   //this->log(arena) << "AiJk: " << setprecision(15) << H.getAIJK()({1,0},{0,1}).norm(2) << endl;
+   //this->log(arena) << "aIJk: " << setprecision(15) << H.getAIJK()({0,1},{0,1}).norm(2) << endl;
+   //this->log(arena) << "aijk: " << setprecision(15) << H.getAIJK()({0,0},{0,0}).norm(2) << endl;
+   //this->log(arena) << "IJAK: " << setprecision(15) << H.getIJAK()({0,2},{1,1}).norm(2) << endl;
+   //this->log(arena) << "IjAk: " << setprecision(15) << H.getIJAK()({0,1},{1,0}).norm(2) << endl;
+   //this->log(arena) << "IjaK: " << setprecision(15) << H.getIJAK()({0,1},{0,1}).norm(2) << endl;
+   //this->log(arena) << "ijak: " << setprecision(15) << H.getIJAK()({0,0},{0,0}).norm(2) << endl;
+   //this->log(arena) << "IJKL: " << setprecision(15) << H.getIJKL()({0,2},{0,2}).norm(2) << endl;
+   //this->log(arena) << "IjKl: " << setprecision(15) << H.getIJKL()({0,1},{0,1}).norm(2) << endl;
+   //this->log(arena) << "ijkl: " << setprecision(15) << H.getIJKL()({0,0},{0,0}).norm(2) << endl;
+   //this->log(arena) << "AB:   " << setprecision(15) << H.getAB()({1,0},{1,0}).norm(2) << endl;
+   //this->log(arena) << "ab:   " << setprecision(15) << H.getAB()({0,0},{0,0}).norm(2) << endl;
+   //this->log(arena) << "AI:   " << setprecision(15) << H.getAI()({1,0},{0,1}).norm(2) << endl;
+   //this->log(arena) << "ai:   " << setprecision(15) << H.getAI()({0,0},{0,0}).norm(2) << endl;
+   //this->log(arena) << "IA:   " << setprecision(15) << H.getIA()({0,1},{1,0}).norm(2) << endl;
+   //this->log(arena) << "ia:   " << setprecision(15) << H.getIA()({0,0},{0,0}).norm(2) << endl;
+   //this->log(arena) << "IJ:   " << setprecision(15) << H.getIJ()({0,1},{0,1}).norm(2) << endl;
+   //this->log(arena) << "ij:   " << setprecision(15) << H.getIJ()({0,0},{0,0}).norm(2) << endl;
 }
 
 void CFOURGradient::readIntegrals(ifstream& ifs, CTFTensor<double>& H,
@@ -857,37 +857,25 @@ void CFOURGradient::writeDensity()
 
     if (arena.rank == 0) ofs.open("CCDENSITIES");
 
-    {
-        CTFTensor<double> G(D.getIJKL()({0,2},{0,2})({0,0,0,0}));
-        0.5*G["pqrs"] += 0.5*D.getIJKL()({0,2},{0,2})({0,0,0,0})["rspq"];
-        if (arena.rank == 0) ofs << " G(IJ,KL)" << endl;
-        writeDensity(ofs, G, 0, 0, 0, 0, false, false);
-    }
+    if (arena.rank == 0) ofs << " G(IJ,KL)" << endl;
+    writeDensity(ofs, D.getIJKL()({0,2},{0,2})({0,0,0,0}), 0, 0, 0, 0, false, false);
 
-    {
-        CTFTensor<double> G(D.getIJKL()({0,0},{0,0})({0,0,0,0}));
-        0.5*G["pqrs"] += 0.5*D.getIJKL()({0,0},{0,0})({0,0,0,0})["rspq"];
-        if (arena.rank == 0) ofs << " G(ij,kl)" << endl;
-        writeDensity(ofs, G, 0, 0, 0, 0, false, false);
-    }
+    if (arena.rank == 0) ofs << " G(ij,kl)" << endl;
+    writeDensity(ofs, D.getIJKL()({0,0},{0,0})({0,0,0,0}), 0, 0, 0, 0, false, false);
 
-    {
-        CTFTensor<double> G(D.getIJKL()({0,1},{0,1})({0,0,0,0}));
-        0.5*G["pqrs"] += 0.5*D.getIJKL()({0,1},{0,1})({0,0,0,0})["rspq"];
-        if (arena.rank == 0) ofs << " G(Ij,Kl)" << endl;
-        writeDensity(ofs, G, 0, 0, 0, 0, false, false);
-    }
+    if (arena.rank == 0) ofs << " G(Ij,Kl)" << endl;
+    writeDensity(ofs, D.getIJKL()({0,1},{0,1})({0,0,0,0}), 0, 0, 0, 0, false, false);
 
     {
         CTFTensor<double> G(D.getIJAK()({0,2},{1,1})({0,0,0,0}));
-        -0.5*G["pqrs"] += -0.5*D.getAIJK()({1,1},{0,2})({0,0,0,0})["rspq"];
+        0.5*G["pqrs"] += 0.5*D.getAIJK()({1,1},{0,2})({0,0,0,0})["rspq"];
         if (arena.rank == 0) ofs << " G(IJ,KA)" << endl;
         writeDensity(ofs, G, 0, 0, na, 0, true, true);
     }
 
     {
         CTFTensor<double> G(D.getIJAK()({0,0},{0,0})({0,0,0,0}));
-        -0.5*G["pqrs"] += -0.5*D.getAIJK()({0,0},{0,0})({0,0,0,0})["rspq"];
+        0.5*G["pqrs"] += 0.5*D.getAIJK()({0,0},{0,0})({0,0,0,0})["rspq"];
         if (arena.rank == 0) ofs << " G(ij,ka)" << endl;
         writeDensity(ofs, G, 0, 0, nb, 0, true, true);
     }
@@ -927,47 +915,23 @@ void CFOURGradient::writeDensity()
         writeDensity(ofs, G, na, nb, 0, 0, false, false);
     }
 
-    {
-        CTFTensor<double> G(D.getAIBJ()({1,1},{1,1})({0,0,0,0}));
-        0.5*G["pqrs"] += 0.5*D.getAIBJ()({1,1},{1,1})({0,0,0,0})["rspq"];
-        if (arena.rank == 0) ofs << " G(AI,BJ)" << endl;
-        writeDensity(ofs, G, na, 0, na, 0, false, false);
-    }
+    if (arena.rank == 0) ofs << " G(AI,BJ)" << endl;
+    writeDensity(ofs, D.getAIBJ()({1,1},{1,1})({0,0,0,0}), na, 0, na, 0, false, false);
 
-    {
-        CTFTensor<double> G(D.getAIBJ()({0,0},{0,0})({0,0,0,0}));
-        0.5*G["pqrs"] += 0.5*D.getAIBJ()({0,0},{0,0})({0,0,0,0})["rspq"];
-        if (arena.rank == 0) ofs << " G(ai,bj)" << endl;
-        writeDensity(ofs, G, nb, 0, nb, 0, false, false);
-    }
+    if (arena.rank == 0) ofs << " G(ai,bj)" << endl;
+    writeDensity(ofs, D.getAIBJ()({0,0},{0,0})({0,0,0,0}), nb, 0, nb, 0, false, false);
 
-    {
-        CTFTensor<double> G(D.getAIBJ()({1,0},{1,0})({0,0,0,0}));
-        0.5*G["pqrs"] += 0.5*D.getAIBJ()({1,0},{1,0})({0,0,0,0})["rspq"];
-        if (arena.rank == 0) ofs << " G(Ai,Bj)" << endl;
-        writeDensity(ofs, G, na, 0, na, 0, false, false);
-    }
+    if (arena.rank == 0) ofs << " G(Ai,Bj)" << endl;
+    writeDensity(ofs, D.getAIBJ()({1,0},{1,0})({0,0,0,0}), na, 0, na, 0, false, false);
 
-    {
-        CTFTensor<double> G(D.getAIBJ()({0,1},{0,1})({0,0,0,0}));
-        0.5*G["pqrs"] += 0.5*D.getAIBJ()({0,1},{0,1})({0,0,0,0})["rspq"];
-        if (arena.rank == 0) ofs << " G(aI,bJ)" << endl;
-        writeDensity(ofs, G, nb, 0, nb, 0, false, false);
-    }
+    if (arena.rank == 0) ofs << " G(aI,bJ)" << endl;
+    writeDensity(ofs, D.getAIBJ()({0,1},{0,1})({0,0,0,0}), nb, 0, nb, 0, false, false);
 
-    {
-        CTFTensor<double> G(D.getAIBJ()({1,0},{0,1})({0,0,0,0}));
-        0.5*G["pqrs"] += 0.5*D.getAIBJ()({0,1},{1,0})({0,0,0,0})["rspq"];
-        if (arena.rank == 0) ofs << " G(Aj,Ib)" << endl;
-        writeDensity(ofs, G, na, 0, nb, 0, false, true);
-    }
+    if (arena.rank == 0) ofs << " G(Aj,Ib)" << endl;
+    writeDensity(ofs, D.getAIBJ()({1,0},{0,1})({0,0,0,0}), na, 0, nb, 0, false, true);
 
-    {
-        CTFTensor<double> G(D.getAIBJ()({0,1},{1,0})({0,0,0,0}));
-        0.5*G["pqrs"] += 0.5*D.getAIBJ()({1,0},{0,1})({0,0,0,0})["rspq"];
-        if (arena.rank == 0) ofs << " G(aJ,iB)" << endl;
-        writeDensity(ofs, G, nb, 0, na, 0, false, true);
-    }
+    if (arena.rank == 0) ofs << " G(aJ,iB)" << endl;
+    writeDensity(ofs, D.getAIBJ()({0,1},{1,0})({0,0,0,0}), nb, 0, na, 0, false, true);
 
     {
         CTFTensor<double> G(D.getABCI()({2,0},{1,1})({0,0,0,0}));
@@ -997,40 +961,20 @@ void CFOURGradient::writeDensity()
         writeDensity(ofs, G, na, nb, na, 0, false, false);
     }
 
-    {
-        CTFTensor<double> G(D.getABCD()({2,0},{2,0})({0,0,0,0}));
-        0.5*G["pqrs"] += 0.5*D.getABCD()({2,0},{2,0})({0,0,0,0})["rspq"];
-        if (arena.rank == 0) ofs << " G(AB,CD)" << endl;
-        writeDensity(ofs, G, na, na, na, na, false, false);
-    }
+    if (arena.rank == 0) ofs << " G(AB,CD)" << endl;
+    writeDensity(ofs, D.getABCD()({2,0},{2,0})({0,0,0,0}), na, na, na, na, false, false);
 
-    {
-        CTFTensor<double> G(D.getABCD()({0,0},{0,0})({0,0,0,0}));
-        0.5*G["pqrs"] += 0.5*D.getABCD()({0,0},{0,0})({0,0,0,0})["rspq"];
-        if (arena.rank == 0) ofs << " G(ab,cd)" << endl;
-        writeDensity(ofs, G, nb, nb, nb, nb, false, false);
-    }
+    if (arena.rank == 0) ofs << " G(ab,cd)" << endl;
+    writeDensity(ofs, D.getABCD()({0,0},{0,0})({0,0,0,0}), nb, nb, nb, nb, false, false);
 
-    {
-        CTFTensor<double> G(D.getABCD()({1,0},{1,0})({0,0,0,0}));
-        0.5*G["pqrs"] += 0.5*D.getABCD()({1,0},{1,0})({0,0,0,0})["rspq"];
-        if (arena.rank == 0) ofs << " G(Ab,Cd)" << endl;
-        writeDensity(ofs, G, na, nb, na, nb, false, false);
-    }
+    if (arena.rank == 0) ofs << " G(Ab,Cd)" << endl;
+    writeDensity(ofs, D.getABCD()({1,0},{1,0})({0,0,0,0}), na, nb, na, nb, false, false);
 
-    {
-        CTFTensor<double> G(D.getIJ()({0,1},{0,1})({0,0}));
-        0.5*G["pq"] += 0.5*D.getIJ()({0,1},{0,1})({0,0})["qp"];
-        if (arena.rank == 0) ofs << " D(I,J)  " << endl;
-        writeDensity(ofs, G, 0, 0);
-    }
+    if (arena.rank == 0) ofs << " D(I,J)  " << endl;
+    writeDensity(ofs, D.getIJ()({0,1},{0,1})({0,0}), 0, 0);
 
-    {
-        CTFTensor<double> G(D.getAB()({1,0},{1,0})({0,0}));
-        0.5*G["pq"] += 0.5*D.getAB()({1,0},{1,0})({0,0})["qp"];
-        if (arena.rank == 0) ofs << " D(A,B)  " << endl;
-        writeDensity(ofs, G, na, na);
-    }
+    if (arena.rank == 0) ofs << " D(A,B)  " << endl;
+    writeDensity(ofs, D.getAB()({1,0},{1,0})({0,0}), na, na);
 
     {
         CTFTensor<double> G(D.getAI()({1,0},{0,1})({0,0}));
@@ -1038,20 +982,12 @@ void CFOURGradient::writeDensity()
         if (arena.rank == 0) ofs << " D(A,I)  " << endl;
         writeDensity(ofs, G, na, 0);
     }
+    
+    if (arena.rank == 0) ofs << " D(i,j)  " << endl;
+    writeDensity(ofs, D.getIJ()({0,0},{0,0})({0,0}), 0, 0);
 
-    {
-        CTFTensor<double> G(D.getIJ()({0,0},{0,0})({0,0}));
-        0.5*G["pq"] += 0.5*D.getIJ()({0,0},{0,0})({0,0})["qp"];
-        if (arena.rank == 0) ofs << " D(i,j)  " << endl;
-        writeDensity(ofs, G, 0, 0);
-    }
-
-    {
-        CTFTensor<double> G(D.getAB()({0,0},{0,0})({0,0}));
-        0.5*G["pq"] += 0.5*D.getAB()({0,0},{0,0})({0,0})["qp"];
-        if (arena.rank == 0) ofs << " D(a,b)  " << endl;
-        writeDensity(ofs, G, nb, nb);
-    }
+    if (arena.rank == 0) ofs << " D(a,b)  " << endl;
+    writeDensity(ofs, D.getAB()({0,0},{0,0})({0,0}), nb, nb);
 
     {
         CTFTensor<double> G(D.getAI()({0,0},{0,0})({0,0}));

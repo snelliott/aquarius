@@ -6,10 +6,10 @@
 #include "task/task.hpp"
 #include "time/time.hpp"
 #include "util/iterative.hpp"
+#include "util/subiterative.hpp"
 #include "operator/2eoperator.hpp"
 #include "operator/excitationoperator.hpp"
 #include "convergence/diis.hpp"
-
 #include "ccsd.hpp"
 
 namespace aquarius
@@ -18,9 +18,11 @@ namespace cc
 {
 
 template <typename U>
-class CCSDT : public Iterative<U>
+class CCSDT : public Subiterative<U> 
 {
     protected:
+//        input::Config diis_config;
+//       convergence::DIIS<op::ExcitationOperator<U,2>> diis;
         convergence::DIIS<op::ExcitationOperator<U,3>> diis;
         string guess;
 

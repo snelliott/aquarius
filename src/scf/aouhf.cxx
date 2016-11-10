@@ -271,8 +271,6 @@ static const char* spec = R"(
         double 1e-12,
     max_iterations?
         int 150,
-    sub_iterations?
-        int 0,
     conv_type?
         enum { MAXE, RMSE, MAE },
     diis?

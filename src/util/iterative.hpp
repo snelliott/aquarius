@@ -17,14 +17,12 @@ class Iterative : public task::Task
         enum ConvergenceType {MAX_ABS, RMSD, MAD};
 
     private:
+        int maxiter;
+        int nsolution_;
+        int iter_;
         vector<U> energy_;
         vector<double> conv_;
         double convtol;
-        int iter_;
-        int subiter_;
-        int maxiter;
-        int maxsubiter;
-        int nsolution_;
 
         static ConvergenceType getConvType(const input::Config& config)
         {
@@ -108,27 +106,13 @@ class Iterative : public task::Task
             return iter_;
         }
 
-        int subiter() const
-        {
-            return subiter_;
-        }
-
         virtual void iterate(const Arena& arena) = 0;
-
-        virtual void subiterate(const Arena& arena) 
-        {
-            if (config.get<int>("sub_iterations") != 0 )
-            {
-                return;
-            }
-        }
 
     public:
         Iterative(const string& name, input::Config& config)
         : Task(name, config),
           convtol(config.get<double>("convergence")),
           maxiter(config.get<int>("max_iterations")),
-          maxsubiter(config.get<int>("sub_iterations")),
           nsolution_(0),
           convtype(getConvType(config)) {}
         
@@ -141,36 +125,12 @@ class Iterative : public task::Task
 
         bool run(task::TaskDAG& dag, const Arena& arena, int nsolution)
         {
-            log(arena) << config.get<int>("sub_iterations") << endl;
             nsolution_ = nsolution;
             energy_.resize(nsolution);
             conv_.assign(nsolution, numeric_limits<double>::max());
             
             for (iter_ = 1;iter_ <= maxiter && !isConverged();iter_++)
             {
-                for (subiter_ = 1;subiter_ <= maxsubiter && !isConverged();subiter_++)
-                {
-                    time::Timer timer;
-                    timer.start();
-                    subiterate(arena);
-                    timer.stop();
-                    double dt = timer.seconds(arena);
-                    log(arena) << "Subiteration " << iter_ << "." << subiter_ << " took " << fixed <<
-                               setprecision(3) << dt << " s" << endl;
-                    for (int i = 0;i < nsolution;i++)
-                    {
-                        if (nsolution > 1)
-                        {
-                            log(arena) << "Subiteration " << iter_ << "." << subiter_ << " sol'n " << (i+1) <<
-                                          " energy = " << printToAccuracy(energy_[i], convtol)  << endl;
-                        }
-                        else
-                        {
-                            log(arena) << "Subteration " << iter_ << "." << subiter_ <<
-                                          " energy = " << printToAccuracy(energy_[i], convtol) << endl;
-                        }
-                    }
-                }
                 time::Timer timer;
                 timer.start();
                 iterate(arena);
@@ -231,6 +191,8 @@ class Iterative : public task::Task
         {
             return conv(i) < convtol;
         }
+
+        friend class Subiterative;
 };
 
 }
