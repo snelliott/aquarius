@@ -31,6 +31,7 @@ class Subiterative : public task::Task//, Iterative<U>
         int maxmicroiter;
         
         int nsolution_;
+        int printlevel;
 
         static ConvergenceType getConvType(const input::Config& config)
         {
@@ -147,6 +148,7 @@ class Subiterative : public task::Task//, Iterative<U>
           maxiter(config.get<int>("max_iterations")),
           maxsubiter(config.get<int>("sub_iterations")),
           maxmicroiter(config.get<int>("micro_iterations")),
+          printlevel(config.get<int>("print_subiterations")),
           nsolution_(0),
           convtype(getConvType(config)) {}
         
@@ -168,58 +170,7 @@ class Subiterative : public task::Task//, Iterative<U>
             {
                 time::Timer timer;
                 timer.start();
-                for (subiter_ = 1;subiter_ <= maxsubiter && !isConverged();subiter_++)
-                {
-                    for (microiter_ = 1;microiter_ <= maxmicroiter && !isConverged();microiter_++)
-                    {
-                     // time::Timer timer;
-                     // timer.start();
-                        microiterate(arena);
-                     // timer.stop();
-                     // double dt = timer.seconds(arena);
-                     // log(arena) << "Microiteration " << iter_  << "." << subiter_ << "." << microiter_ << " took " << fixed <
-                     //            setprecision(3) << dt << " s" << endl;
-                        for (int i = 0;i < nsolution;i++)
-                        {
-                            if (nsolution > 1)
-                            {
-                                log(arena) << "      " << iter_  << "." << subiter_ << "." << microiter_ << " sol'n " << (i+1) <<
-                                              " energy = " << printToAccuracy(energy_[i], convtol)  << endl;
-                            }
-                            else
-                            {
-                                log(arena) << "      " << iter_  << "." << subiter_ << "." << microiter_ <<
-                                              " energy = " << printToAccuracy(energy_[i], convtol) << endl;
-                            }
-                        }
-                    }
-                //  time::Timer timer;
-                //  timer.start();
-                    subiterate(arena);
-                //  timer.stop();
-                //  double dt = timer.seconds(arena);
-                //  log(arena) << "Subiteration " << iter_ << "." << subiter_ << " took " << fixed <<
-                //             setprecision(3) << dt << " s" << endl;
-                    for (int i = 0;i < nsolution;i++)
-                    {
-                        if (nsolution > 1)
-                        {
-                            log(arena) << "        " << iter_ << "." << subiter_ << " sol'n " << (i+1) <<
-                                          " energy = " << printToAccuracy(energy_[i], convtol)  << endl;
-                        }
-                        else
-                        {
-                            log(arena) << "        " << iter_ << "." << subiter_ <<
-                                          " energy = " << printToAccuracy(energy_[i], convtol) << endl;
-                        }
-                    }
-                }
                 iterate(arena);
-                timer.stop();
-                double dt = timer.seconds(arena);
-                log(arena) << "Iteration " << iter_ << " took " << fixed <<
-                              setprecision(3) << dt << " s" << endl;
-
                 for (int i = 0;i < nsolution;i++)
                 {
                     if (nsolution > 1)
@@ -235,6 +186,50 @@ class Subiterative : public task::Task//, Iterative<U>
                                       ", convergence = " << scientific << setprecision(3) << conv_[i] << endl;
                     }
                 }
+                for (subiter_ = 1;subiter_ <= maxsubiter && !isConverged();subiter_++)
+                {
+                    subiterate(arena);
+                    if (printlevel == 1)
+                    {
+                        for (int i = 0;i < nsolution;i++)
+                        {
+                            if (nsolution > 1)
+                            {
+                                log(arena) << "        " << iter_ << "." << subiter_ << " sol'n " << (i+1) <<
+                                              " energy = " << printToAccuracy(energy_[i], convtol)  << endl;
+                            }
+                            else
+                            {
+                                log(arena) << "        " << iter_ << "." << subiter_ <<
+                                              " energy = " << printToAccuracy(energy_[i], convtol) << endl;
+                            }
+                        }
+                    }
+                    for (microiter_ = 1;microiter_ <= maxmicroiter && !isConverged();microiter_++)
+                    {
+                        microiterate(arena);
+                        if (printlevel == 1)
+                        {
+                            for (int i = 0;i < nsolution;i++)
+                            {
+                                if (nsolution > 1)
+                                {
+                                    log(arena) << "      " << iter_  << "." << subiter_ << "." << microiter_ << " sol'n " << (i+1) <<
+                                                  " energy = " << printToAccuracy(energy_[i], convtol)  << endl;
+                                }
+                                else
+                                {
+                                    log(arena) << "      " << iter_  << "." << subiter_ << "." << microiter_ <<
+                                                  " energy = " << printToAccuracy(energy_[i], convtol) << endl;
+                                }
+                            }
+                        }
+                    }
+                }
+                timer.stop();
+                double dt = timer.seconds(arena);
+                log(arena) << "Iteration " << iter_ << " took " << fixed <<
+                              setprecision(3) << dt << " s" << endl;
 
             }
 

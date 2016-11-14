@@ -5,7 +5,6 @@
 
 #include "task/task.hpp"
 #include "time/time.hpp"
-#include "util/iterative.hpp"
 #include "util/subiterative.hpp"
 #include "operator/2eoperator.hpp"
 #include "operator/excitationoperator.hpp"
@@ -21,9 +20,7 @@ template <typename U>
 class CCSDT : public Subiterative<U> 
 {
     protected:
-//        input::Config diis_config;
-//       convergence::DIIS<op::ExcitationOperator<U,2>> diis;
-        convergence::DIIS<op::ExcitationOperator<U,3>> diis;
+        convergence::DIIS<op::ExcitationOperator<U,2>> diis;
         string guess;
 
     public:

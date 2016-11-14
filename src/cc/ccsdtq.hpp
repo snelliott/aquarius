@@ -22,7 +22,7 @@ template <typename U>
 class CCSDTQ : public Subiterative<U>
 {
     protected:
-        convergence::DIIS<op::ExcitationOperator<U,4>> diis;
+        convergence::DIIS<op::ExcitationOperator<U,2>> diis;
         string guess;
 
     public:
