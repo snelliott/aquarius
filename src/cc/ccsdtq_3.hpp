@@ -5,7 +5,7 @@
 
 #include "task/task.hpp"
 #include "time/time.hpp"
-#include "util/iterative.hpp"
+#include "util/subiterative.hpp"
 #include "operator/2eoperator.hpp"
 #include "operator/excitationoperator.hpp"
 #include "convergence/diis.hpp"
@@ -18,10 +18,10 @@ namespace cc
 {
 
 template <typename U>
-class CCSDTQ_3 : public Iterative<U>
+class CCSDTQ_3 : public Subiterative<U>
 {
     protected:
-        convergence::DIIS<op::ExcitationOperator<U,3>> diis;
+        convergence::DIIS<op::ExcitationOperator<U,2>> diis;
 
     public:
         CCSDTQ_3(const string& name, input::Config& config);
@@ -29,6 +29,8 @@ class CCSDTQ_3 : public Iterative<U>
         bool run(task::TaskDAG& dag, const Arena& arena);
 
         void iterate(const Arena& arena);
+        void subiterate(const Arena& arena);
+        void microiterate(const Arena& arena);
 };
 
 }

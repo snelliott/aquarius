@@ -170,41 +170,8 @@ class Subiterative : public task::Task//, Iterative<U>
             {
                 time::Timer timer;
                 timer.start();
-                iterate(arena);
-                for (int i = 0;i < nsolution;i++)
-                {
-                    if (nsolution > 1)
-                    {
-                        log(arena) << "Iteration " << iter_ << " sol'n " << (i+1) <<
-                                      " energy = " << printToAccuracy(energy_[i], convtol) <<
-                                      ", convergence = " << scientific << setprecision(3) << conv_[i] << endl;
-                    }
-                    else
-                    {
-                        log(arena) << "Iteration " << iter_ <<
-                                      " energy = " << printToAccuracy(energy_[i], convtol) <<
-                                      ", convergence = " << scientific << setprecision(3) << conv_[i] << endl;
-                    }
-                }
                 for (subiter_ = 1;subiter_ <= maxsubiter && !isConverged();subiter_++)
                 {
-                    subiterate(arena);
-                    if (printlevel == 1)
-                    {
-                        for (int i = 0;i < nsolution;i++)
-                        {
-                            if (nsolution > 1)
-                            {
-                                log(arena) << "        " << iter_ << "." << subiter_ << " sol'n " << (i+1) <<
-                                              " energy = " << printToAccuracy(energy_[i], convtol)  << endl;
-                            }
-                            else
-                            {
-                                log(arena) << "        " << iter_ << "." << subiter_ <<
-                                              " energy = " << printToAccuracy(energy_[i], convtol) << endl;
-                            }
-                        }
-                    }
                     for (microiter_ = 1;microiter_ <= maxmicroiter && !isConverged();microiter_++)
                     {
                         microiterate(arena);
@@ -225,11 +192,45 @@ class Subiterative : public task::Task//, Iterative<U>
                             }
                         }
                     }
+                    
+                    subiterate(arena);
+                    if (printlevel == 1)
+                    {
+                        for (int i = 0;i < nsolution;i++)
+                        {
+                            if (nsolution > 1)
+                            {
+                                log(arena) << "        " << iter_ << "." << subiter_ << " sol'n " << (i+1) <<
+                                              " energy = " << printToAccuracy(energy_[i], convtol)  << endl;
+                            }
+                            else
+                            {
+                                log(arena) << "        " << iter_ << "." << subiter_ <<
+                                              " energy = " << printToAccuracy(energy_[i], convtol) << endl;
+                            }
+                        }
+                    }
                 }
+                iterate(arena);
                 timer.stop();
                 double dt = timer.seconds(arena);
                 log(arena) << "Iteration " << iter_ << " took " << fixed <<
                               setprecision(3) << dt << " s" << endl;
+                for (int i = 0;i < nsolution;i++)
+                {
+                    if (nsolution > 1)
+                    {
+                        log(arena) << "Iteration " << iter_ << " sol'n " << (i+1) <<
+                                      " energy = " << printToAccuracy(energy_[i], convtol) <<
+                                      ", convergence = " << scientific << setprecision(3) << conv_[i] << endl;
+                    }
+                    else
+                    {
+                        log(arena) << "Iteration " << iter_ <<
+                                      " energy = " << printToAccuracy(energy_[i], convtol) <<
+                                      ", convergence = " << scientific << setprecision(3) << conv_[i] << endl;
+                    }
+                }
 
             }
 
