@@ -12,7 +12,7 @@ namespace aquarius
 {
 
 template <typename U>
-class Subiterative : public task::Task//, Iterative<U>
+class Subiterative : public task::Task
 {
     public:
         enum ConvergenceType {MAX_ABS, RMSD, MAD};

@@ -63,13 +63,10 @@ bool CCSDT<U>::run(task::TaskDAG& dag, const Arena& arena)
     this->puttmp("WAMEF", new SpinorbitalTensor<U>( "W(am,ef)", H.getAIBC()));
 
     Z(0) = (U)0.0;
-    Z3   = (U)0.0;
-    Q(0) = (U)0.0;
     
     T(0) = (U)0.0;
     T(1) = H.getAI();
     T(2) = H.getABIJ();
-    T3   = (U)0.0;
 
     T.weight(D);
 
@@ -293,7 +290,8 @@ void CCSDT<U>::iterate(const Arena& arena)
     Tau["abij"] += 0.5*T(1)["ai"]*T(1)["bj"];
     
     this->energy() = real(scalar(H.getAI()*T(1))) + 0.25*real(scalar(H.getABIJ()*Tau));
-    this->conv() = Z.norm(00);
+    this->conv() = max(Z.norm(00), Z3.norm(00));
+   // this->conv() = Z.norm(00);
     
     diis.extrapolate(T,Z);
 }

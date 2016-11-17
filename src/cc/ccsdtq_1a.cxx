@@ -129,13 +129,13 @@ void CCSDTQ_1a<U>::iterate(const Arena& arena)
     const SpinorbitalTensor<U>& VAMEI = H.getAIBJ();
 
     auto& T   = this->template get   <ExcitationOperator<U,2>>(   "T");
-    auto& Q   = this->template gettmp<ExcitationOperator<U,3>>(   "Q");
-    auto& D   = this->template gettmp<Denominator       <U  >>(   "D");
-    auto& Z   = this->template gettmp<ExcitationOperator<U,2>>(   "Z");
-    auto& Tau = this->template gettmp<SpinorbitalTensor <U  >>( "Tau");
     auto& T3 = this->template  get   <SpinorbitalTensor<U   >>(  "T3");
     auto& T4 = this->template  get   <SpinorbitalTensor<U   >>(  "T4");
+    auto& Z   = this->template gettmp<ExcitationOperator<U,2>>(   "Z");
     auto& Z3 = this->template  gettmp<SpinorbitalTensor<U   >>(  "Z3");
+    auto& Q   = this->template gettmp<ExcitationOperator<U,3>>(   "Q");
+    auto& D   = this->template gettmp<Denominator       <U  >>(   "D");
+    auto& Tau = this->template gettmp<SpinorbitalTensor <U  >>( "Tau");
 
     auto&     FME = this->template gettmp<SpinorbitalTensor<U>>(    "FME");
     auto&     FAE = this->template gettmp<SpinorbitalTensor<U>>(    "FAE");
@@ -325,13 +325,13 @@ void CCSDTQ_1a<U>::subiterate(const Arena& arena)
     const SpinorbitalTensor<U>& VAMEI = H.getAIBJ();
 
     auto& T   = this->template get   <ExcitationOperator<U,2>>(   "T");
+    auto& T3 = this->template  get   <SpinorbitalTensor<U   >>(  "T3");
+    auto& Z   = this->template gettmp<ExcitationOperator<U,2>>(   "Z");
+    auto& Z3 = this->template  gettmp<SpinorbitalTensor<U   >>(  "Z3");
     auto& Q   = this->template gettmp<ExcitationOperator<U,3>>(   "Q");
     auto& q   = this->template gettmp<ExcitationOperator<U,2>>(   "q");
     auto& D   = this->template gettmp<Denominator       <U  >>(   "D");
-    auto& Z   = this->template gettmp<ExcitationOperator<U,2>>(   "Z");
     auto& Tau = this->template gettmp<SpinorbitalTensor <U  >>( "Tau");
-    auto& T3 = this->template  get   <SpinorbitalTensor<U   >>(  "T3");
-    auto& Z3 = this->template  gettmp<SpinorbitalTensor<U   >>(  "Z3");
 
     auto&     FME = this->template gettmp<SpinorbitalTensor<U>>(    "FME");
     auto&     FAE = this->template gettmp<SpinorbitalTensor<U>>(    "FAE");
@@ -516,10 +516,10 @@ void CCSDTQ_1a<U>::microiterate(const Arena& arena)
     const SpinorbitalTensor<U>& VAMEI = H.getAIBJ();
 
     auto& T   = this->template get   <ExcitationOperator<U,2>>(   "T");
+    auto& Z   = this->template gettmp<ExcitationOperator<U,2>>(   "Z");
     auto& Q   = this->template gettmp<ExcitationOperator<U,3>>(   "Q");
     auto& q   = this->template gettmp<ExcitationOperator<U,2>>(   "q");
     auto& D   = this->template gettmp<Denominator       <U  >>(   "D");
-    auto& Z   = this->template gettmp<ExcitationOperator<U,2>>(   "Z");
     auto& Tau = this->template gettmp<SpinorbitalTensor <U  >>( "Tau");
 
     auto&     FME = this->template gettmp<SpinorbitalTensor<U>>(    "FME");

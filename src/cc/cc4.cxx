@@ -511,6 +511,8 @@ void CC4<U>::subiterate(const Arena& arena)
 
     Z.weight(D);
     T += Z;
+    /*
+     **************************************************************************/
     
     Tau["abij"]  = T(2)["abij"];
     Tau["abij"] += 0.5*T(1)["ai"]*T(1)["bj"];
