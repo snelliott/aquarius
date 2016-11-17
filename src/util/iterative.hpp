@@ -192,7 +192,6 @@ class Iterative : public task::Task
             return conv(i) < convtol;
         }
 
-        friend class Subiterative;
 };
 
 }
