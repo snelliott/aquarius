@@ -5,7 +5,6 @@
 
 #include "task/task.hpp"
 #include "time/time.hpp"
-#include "util/iterative.hpp"
 #include "util/subiterative.hpp"
 #include "operator/2eoperator.hpp"
 #include "operator/excitationoperator.hpp"
@@ -20,9 +19,10 @@ namespace cc
 
 template <typename U>
 class CCSDTQ : public Subiterative<U>
+//class CCSDTQ : public Iterative<U>
 {
     protected:
-        convergence::DIIS<op::ExcitationOperator<U,2>> diis;
+        convergence::DIIS<op::ExcitationOperator<U,4>> diis;
         string guess;
 
     public:

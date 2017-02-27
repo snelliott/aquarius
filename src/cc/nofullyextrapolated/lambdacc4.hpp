@@ -1,5 +1,5 @@
-#ifndef _AQUARIUS_CC_LAMBDACCSDTQ_HPP_
-#define _AQUARIUS_CC_LAMBDACCSDTQ_HPP_
+#ifndef _AQUARIUS_CC_LAMBDACC4_HPP_
+#define _AQUARIUS_CC_LAMBDACC4_HPP_
 
 #include "util/global.hpp"
 
@@ -27,19 +27,17 @@ namespace cc
  *                           c
  */
 template <typename U>
-class LambdaCCSDTQ : public Subiterative<U>
+class LambdaCC4 : public Subiterative<U>
 {
     protected:
         convergence::DIIS<op::DeexcitationOperator<U,2>> diis;
 
     public:
-        LambdaCCSDTQ(const string& name, input::Config& config);
+        LambdaCC4(const string& name, input::Config& config);
 
         bool run(task::TaskDAG& dag, const Arena& arena);
 
         void iterate(const Arena& arena);
-        void subiterate(const Arena& arena);
-        void microiterate(const Arena& arena);
 };
 
 }

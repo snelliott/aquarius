@@ -1,5 +1,5 @@
-#ifndef _AQUARIUS_CC_CC4_HPP_
-#define _AQUARIUS_CC_CC4_HPP_
+#ifndef _AQUARIUS_CC_CCSDT_HPP_
+#define _AQUARIUS_CC_CCSDT_HPP_
 
 #include "util/global.hpp"
 
@@ -9,7 +9,6 @@
 #include "operator/2eoperator.hpp"
 #include "operator/excitationoperator.hpp"
 #include "convergence/diis.hpp"
-
 #include "ccsd.hpp"
 
 namespace aquarius
@@ -18,19 +17,25 @@ namespace cc
 {
 
 template <typename U>
-class CC4 : public Subiterative<U>
+class CCSDT : public Subiterative<U> 
 {
     protected:
-        convergence::DIIS<op::ExcitationOperator<U,3>> diis;
+        convergence::DIIS<op::ExcitationOperator<U,2>> diis;
+        string guess;
 
     public:
-        CC4(const string& name, input::Config& config);
+        CCSDT(const string& name, input::Config& config);
 
         bool run(task::TaskDAG& dag, const Arena& arena);
 
         void iterate(const Arena& arena);
         void subiterate(const Arena& arena);
-        void microiterate(const Arena& arena);
+
+        /*
+        double getProjectedS2() const;
+
+        double getProjectedMultiplicity() const;
+        */
 };
 
 }

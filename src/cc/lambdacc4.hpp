@@ -7,7 +7,7 @@
 #include "operator/deexcitationoperator.hpp"
 #include "operator/excitationoperator.hpp"
 #include "convergence/diis.hpp"
-#include "util/iterative.hpp"
+#include "util/subiterative.hpp"
 #include "task/task.hpp"
 
 namespace aquarius
@@ -27,10 +27,10 @@ namespace cc
  *                           c
  */
 template <typename U>
-class LambdaCC4 : public Iterative<U>
+class LambdaCC4 : public Subiterative<U>
 {
     protected:
-        convergence::DIIS<op::DeexcitationOperator<U,3>> diis;
+        convergence::DIIS<op::DeexcitationOperator<U,2>> diis;
 
     public:
         LambdaCC4(const string& name, input::Config& config);
@@ -38,6 +38,8 @@ class LambdaCC4 : public Iterative<U>
         bool run(task::TaskDAG& dag, const Arena& arena);
 
         void iterate(const Arena& arena);
+        void subiterate(const Arena& arena);
+        void microiterate(const Arena& arena);
 };
 
 }

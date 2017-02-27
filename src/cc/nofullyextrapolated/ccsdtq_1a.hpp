@@ -1,5 +1,5 @@
-#ifndef _AQUARIUS_CC_CC4_HPP_
-#define _AQUARIUS_CC_CC4_HPP_
+#ifndef _AQUARIUS_CC_CCSDTQ_1A_HPP_
+#define _AQUARIUS_CC_CCSDTQ_1A_HPP_
 
 #include "util/global.hpp"
 
@@ -18,13 +18,13 @@ namespace cc
 {
 
 template <typename U>
-class CC4 : public Subiterative<U>
+class CCSDTQ_1a : public Subiterative<U>
 {
     protected:
-        convergence::DIIS<op::ExcitationOperator<U,3>> diis;
+        convergence::DIIS<op::ExcitationOperator<U,2>> diis;
 
     public:
-        CC4(const string& name, input::Config& config);
+        CCSDTQ_1a(const string& name, input::Config& config);
 
         bool run(task::TaskDAG& dag, const Arena& arena);
 

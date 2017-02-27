@@ -21,7 +21,7 @@ template <typename U>
 class CCSDTQ_1b : public Subiterative<U>
 {
     protected:
-        convergence::DIIS<op::ExcitationOperator<U,2>> diis;
+        convergence::DIIS<op::ExcitationOperator<U,3>> diis;
 
     public:
         CCSDTQ_1b(const string& name, input::Config& config);

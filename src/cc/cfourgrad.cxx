@@ -457,7 +457,6 @@ void CFOURGradient::writeZMAT()
     ofs << "SCF_EXPORDER=" << config.get<int>("scf.diis.order") << endl;
     ofs << "SCF_MAXCYC=" << config.get<int>("scf.max_iterations") << endl;
     ofs << "FROZEN_CORE=" << (config.get<bool>("scf.frozen_core") ? "ON" : "OFF") << endl;
-    ofs << "PRINT=10" << endl;
     ofs << "SYM=OFF" << endl;
     ofs << "REF=UHF" << endl;
     ofs << "DERIV_LEV=1" << endl;
@@ -983,6 +982,9 @@ void CFOURGradient::writeDensity()
         writeDensity(ofs, G, na, 0);
     }
     
+    if (arena.rank == 0) ofs << " D(i,j)  " << endl;
+    writeDensity(ofs, D.getIJ()({0,0},{0,0})({0,0}), 0, 0);
+
     if (arena.rank == 0) ofs << " D(i,j)  " << endl;
     writeDensity(ofs, D.getIJ()({0,0},{0,0})({0,0}), 0, 0);
 
