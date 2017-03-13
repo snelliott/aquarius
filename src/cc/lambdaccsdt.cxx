@@ -53,6 +53,11 @@ bool LambdaCCSDT<U>::run(TaskDAG& dag, const Arena& arena)
     this->puttmp("GIJKL", new SpinorbitalTensor   <U  >("G(ij,kl)", H.getIJKL()));
     this->puttmp("GAIBC", new SpinorbitalTensor   <U  >("G(ai,bc)", H.getAIBC()));
     this->puttmp("GIJAK", new SpinorbitalTensor   <U  >("G(ij,ak)", H.getIJAK()));
+    auto& QEFIAMN = this->puttmp("QEFIAMN", new SpinorbitalTensor<U>("Q)efi,amn)", arena,
+                                               H.getABIJ().getGroup(),
+                                               {vrt, occ}, {2,1},
+                                               {1,2}));
+    auto& QFN = this->puttmp(  "QFN", new SpinorbitalTensor   <U  >(   "Q(fn)",   H.getAI()));
 
     auto& T  = this->template get   <ExcitationOperator  <U,3>>( "T");
     //auto& T  = this->template get   <ExcitationOperator  <U,2>>( "T");
@@ -67,7 +72,8 @@ bool LambdaCCSDT<U>::run(TaskDAG& dag, const Arena& arena)
     L(1)[  "ia"] = T(1)[  "ai"];
     L(2)["ijab"] = T(2)["abij"];
     L3["ijkabc"] = T(3)["abcijk"]; // L3["ijkabc"] = T3["abcijk"];
-    
+//    QFN = (U)0.0;
+
     Subiterative<U>::run(dag, arena);
 
     this->put("energy", new U(this->energy()));
@@ -85,11 +91,11 @@ void LambdaCCSDT<U>::iterate(const Arena& arena)
     const SpinorbitalTensor<U>&   FMI =   H.getIJ();
     const SpinorbitalTensor<U>& WMNEF = H.getIJAB();
     const SpinorbitalTensor<U>& WAMEF = H.getAIBC();
-    const SpinorbitalTensor<U>& WABEJ = H.getABCI();//
+    const SpinorbitalTensor<U>& WABEJ = H.getABCI();
     const SpinorbitalTensor<U>& WABEF = H.getABCD();
     const SpinorbitalTensor<U>& WMNIJ = H.getIJKL();
     const SpinorbitalTensor<U>& WMNEJ = H.getIJAK();
-    const SpinorbitalTensor<U>& WAMIJ = H.getAIJK();//
+    const SpinorbitalTensor<U>& WAMIJ = H.getAIJK();
     const SpinorbitalTensor<U>& WAMEI = H.getAIBJ();
 
     auto& T  = this->template get   <ExcitationOperator  <U,3>>( "T");
@@ -110,6 +116,7 @@ void LambdaCCSDT<U>::iterate(const Arena& arena)
     auto& GIJKL = this->template gettmp<SpinorbitalTensor<U>>("GIJKL");
     auto& GAIBC = this->template gettmp<SpinorbitalTensor<U>>("GAIBC");
     auto& GIJAK = this->template gettmp<SpinorbitalTensor<U>>("GIJAK");
+    auto& QEFIAMN = this->template gettmp<SpinorbitalTensor<U>>(  "QEFIAMN");
 
     /***************************************************************************
      *
@@ -215,6 +222,8 @@ void LambdaCCSDT<U>::iterate(const Arena& arena)
     Z3.weight({&D.getDA(),&D.getDI()},{&D.getDA(),&D.getDI()});
     L3 += Z3;
 
+    DAI[  "ai"] =       - 0.5*T(2)[  "eamn"]*GIJAK[  "mnei"];
+   
     if (this->config.get<int>("sub_iterations") != 0 )
     {
         Q(1)[    "ia"]  =       FME[  "ie"]*  DAB[    "ea"];
@@ -245,6 +254,9 @@ void LambdaCCSDT<U>::iterate(const Arena& arena)
 
         Z(1)[    "ia"] +=                    Q(1)[    "ia"];
         Z(2)[  "ijab"] +=                    Q(2)[  "ijab"];
+      
+        QEFIAMN[  "efiamn"]  =        0.25*WMNEF["ijab"]* T(3)["efbjmn"];
+        Z(1)[    "ia"]   +=         QEFIAMN[    "efiamn"]* L(2)[  "mnef"];
     }
 
     Z.weight(D);
@@ -282,6 +294,9 @@ void LambdaCCSDT<U>::subiterate(const Arena& arena)
 
     auto&   DIJ = this->template gettmp<SpinorbitalTensor<U>>(  "DIJ");
     auto&   DAB = this->template gettmp<SpinorbitalTensor<U>>(  "DAB");
+    auto&   DAI = this->template gettmp<SpinorbitalTensor<U>>(  "DAI");
+    auto&   QFN = this->template gettmp<SpinorbitalTensor<U>>(  "QFN");
+    auto& QEFIAMN = this->template gettmp<SpinorbitalTensor<U>>(  "QEFIAMN");
 
     /***************************************************************************
      *
@@ -321,6 +336,7 @@ void LambdaCCSDT<U>::subiterate(const Arena& arena)
     /*L(3) -> T(2) and L(3) -> T(1)  */
     Z(1)[    "ia"] +=               Q(1)[    "ia"];
     Z(2)[  "ijab"] +=               Q(2)[  "ijab"];
+    Z(1)[    "ia"] +=         QEFIAMN[    "efiamn"]* L(2)[  "mnef"];
   
      /*
       **************************************************************************/

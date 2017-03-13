@@ -75,6 +75,24 @@ bool CCSDTQ_3<U>::run(task::TaskDAG& dag, const Arena& arena)
                                                H.getABIJ().getGroup(),
                                                {vrt, occ}, {2, 1},
                                                {0, 3}));
+    auto& qABEJ   = this->puttmp("qABEJ", new SpinorbitalTensor<U>(" q(ab,ej)", H.getABCI()));
+    auto& qAMIJ   = this->puttmp("qAMIJ", new SpinorbitalTensor<U>( "q(am,ij)", H.getAIJK()));
+    auto& qABNFIJ = this->puttmp("qABNFIJ", new SpinorbitalTensor<U>("q(abn,fij)", arena,
+                                               H.getABIJ().getGroup(),
+                                               {vrt, occ}, {2,1},
+                                               {1,2}));
+    auto& QBCNIJK = this->puttmp("QBCNIJK", new SpinorbitalTensor<U>("Q(bcn,ijk)", arena,
+                                               H.getABIJ().getGroup(),
+                                               {vrt, occ}, {2,1},
+                                               {0,3}));
+    auto& QABCFIJ = this->puttmp("QABCFIJ", new SpinorbitalTensor<U>("Q(abc,fij)", arena,
+                                               H.getABIJ().getGroup(),
+                                               {vrt, occ}, {3,0},
+                                               {1,2}));
+    auto& QABCNFIJK= this->puttmp("QABCNFIJK", new SpinorbitalTensor<U>("Q(abcn,fijk)", arena,
+                                               H.getABIJ().getGroup(),
+                                               {vrt, occ}, {3,1},
+                                               {1,3}));
 
     Z(0) = (U)0.0;
     T(0) = (U)0.0;
@@ -85,6 +103,13 @@ bool CCSDTQ_3<U>::run(task::TaskDAG& dag, const Arena& arena)
 
     Tau["abij"]  = T(2)["abij"];
     Tau["abij"] += 0.5*T(1)["ai"]*T(1)["bj"];
+
+    qABEJ     =  (U)0.0;
+    qAMIJ     =  (U)0.0;
+    qABNFIJ   =  (U)0.0;
+    QBCNIJK   =  (U)0.0;
+    QABCFIJ   =  (U)0.0;
+    QABCNFIJK =  (U)0.0;
 
     double mp2 = real(scalar(H.getAI()*T(1))) + 0.25*real(scalar(H.getABIJ()*Tau));
     Logger::log(arena) << "MP2 energy = " << setprecision(15) << mp2 << endl;
@@ -134,18 +159,21 @@ void CCSDTQ_3<U>::iterate(const Arena& arena)
     auto& D   = this->template gettmp<Denominator       <U  >>(   "D");
     auto& Tau = this->template gettmp<SpinorbitalTensor <U  >>( "Tau");
 
-    auto&     FME = this->template gettmp<SpinorbitalTensor<U>>(    "FME");
-    auto&     FAE = this->template gettmp<SpinorbitalTensor<U>>(    "FAE");
-    auto&     FMI = this->template gettmp<SpinorbitalTensor<U>>(    "FMI");
-    auto&   WMNIJ = this->template gettmp<SpinorbitalTensor<U>>(  "WMNIJ");
-    auto&   WMNEJ = this->template gettmp<SpinorbitalTensor<U>>(  "WMNEJ");
-    auto&   WAMIJ = this->template gettmp<SpinorbitalTensor<U>>(  "WAMIJ");
-    auto&   WAMEI = this->template gettmp<SpinorbitalTensor<U>>(  "WAMEI");
-    auto&   WABEF = this->template gettmp<SpinorbitalTensor<U>>(  "WABEF");
-    auto&   WABEJ = this->template gettmp<SpinorbitalTensor<U>>(  "WABEJ");
-    auto&   WAMEF = this->template gettmp<SpinorbitalTensor<U>>(  "WAMEF");
-    auto& WABCEJK = this->template gettmp<SpinorbitalTensor<U>>("WABCEJK");
-    auto& WABMIJK = this->template gettmp<SpinorbitalTensor<U>>("WABMIJK");
+    auto&       FME = this->template gettmp<SpinorbitalTensor<U>>(      "FME");
+    auto&       FAE = this->template gettmp<SpinorbitalTensor<U>>(      "FAE");
+    auto&       FMI = this->template gettmp<SpinorbitalTensor<U>>(      "FMI");
+    auto&     WMNIJ = this->template gettmp<SpinorbitalTensor<U>>(    "WMNIJ");
+    auto&     WMNEJ = this->template gettmp<SpinorbitalTensor<U>>(    "WMNEJ");
+    auto&     WAMIJ = this->template gettmp<SpinorbitalTensor<U>>(    "WAMIJ");
+    auto&     WAMEI = this->template gettmp<SpinorbitalTensor<U>>(    "WAMEI");
+    auto&     WABEF = this->template gettmp<SpinorbitalTensor<U>>(    "WABEF");
+    auto&     WABEJ = this->template gettmp<SpinorbitalTensor<U>>(    "WABEJ");
+    auto&     WAMEF = this->template gettmp<SpinorbitalTensor<U>>(    "WAMEF");
+    auto&   WABCEJK = this->template gettmp<SpinorbitalTensor<U>>(  "WABCEJK");
+    auto&   WABMIJK = this->template gettmp<SpinorbitalTensor<U>>(  "WABMIJK");
+    auto&   QBCNIJK = this->template gettmp<SpinorbitalTensor<U>>(  "QBCNIJK");
+    auto&   QABCFIJ = this->template gettmp<SpinorbitalTensor<U>>(  "QABCFIJ");
+    auto& QABCNFIJK = this->template gettmp<SpinorbitalTensor<U>>("QABCNFIJK");
 
     Tau["abij"]  = T(2)["abij"];
     Tau["abij"] += 0.5*T(1)["ai"]*T(1)["bj"];
@@ -250,11 +278,11 @@ void CCSDTQ_3<U>::iterate(const Arena& arena)
 
     Z(3)["abcijk"]  =      WABEJ["bcek"]*T(2)[  "aeij"];
     Z(3)["abcijk"] -=      WAMIJ["bmjk"]*T(2)[  "acim"];
-    Z(3)["abcijk"] +=        FAE[  "ce"]*  T(3)["abeijk"];
-    Z(3)["abcijk"] -=        FMI[  "mk"]*  T(3)["abcijm"];
-    Z(3)["abcijk"] +=  0.5*WABEF["abef"]*  T(3)["efcijk"];
-    Z(3)["abcijk"] +=  0.5*WMNIJ["mnij"]*  T(3)["abcmnk"];
-    Z(3)["abcijk"] +=      WAMEI["amei"]*  T(3)["ebcjmk"];
+    Z(3)["abcijk"] +=        FAE[  "ce"]*T(3)["abeijk"];
+    Z(3)["abcijk"] -=        FMI[  "mk"]*T(3)["abcijm"];
+    Z(3)["abcijk"] +=  0.5*WABEF["abef"]*T(3)["efcijk"];
+    Z(3)["abcijk"] +=  0.5*WMNIJ["mnij"]*T(3)["abcmnk"];
+    Z(3)["abcijk"] +=      WAMEI["amei"]*T(3)["ebcjmk"];
     /*
      **************************************************************************/
 
@@ -265,35 +293,43 @@ void CCSDTQ_3<U>::iterate(const Arena& arena)
       WABEJ[  "abej"] -=       FME[  "me"]*T(2)[    "abmj"];
 
     WABCEJK["abcejk"]  = 0.5*WABEF["abef"]*T(2)[    "fcjk"];
-    WABCEJK["abcejk"] += 0.5*WMNEJ["mnej"]*  T(3)[  "abcmnk"];
-    WABCEJK["abcejk"] +=     WAMEF["amef"]*  T(3)[  "fbcmjk"];
+    WABCEJK["abcejk"] += 0.5*WMNEJ["mnej"]*T(3)[  "abcmnk"];
+    WABCEJK["abcejk"] +=     WAMEF["amef"]*T(3)[  "fbcmjk"];
 
     WABMIJK["abmijk"]  =     WAMEI["amek"]*T(2)[    "ebij"];
     WABMIJK["abmijk"] -= 0.5*WMNIJ["mnkj"]*T(2)[    "abin"];
-    WABMIJK["abmijk"] += 0.5*WAMEF["bmef"]*  T(3)[  "aefijk"];
-    WABMIJK["abmijk"] +=     WMNEJ["nmek"]*  T(3)[  "abeijn"];
+    WABMIJK["abmijk"] += 0.5*WAMEF["bmef"]*T(3)[  "aefijk"];
+    WABMIJK["abmijk"] +=     WMNEJ["nmek"]*T(3)[  "abeijn"];
     /*
      *************************************************************************/
 
     /**************************************************************************
      *
-     * CCSDTQ-c Iteration
+     * CCSDTQ-3 Iteration
      */
-    T4["abcdijkl"]  =     WABCEJK["abcejk"]*T(2)[    "edil"];
-    T4["abcdijkl"] -=     WABMIJK["abmijk"]*T(2)[    "cdml"];
-    T4["abcdijkl"] +=       WABEJ[  "abej"]*  T(3)[  "ecdikl"];
-    T4["abcdijkl"] -=       WAMIJ[  "amij"]*  T(3)[  "bcdmkl"];
+    T4["abcdijkl"]    =    WABCEJK["abcejk"]*T(2)[    "edil"];
+    T4["abcdijkl"]   -=    WABMIJK["abmijk"]*T(2)[    "cdml"];
+    T4["abcdijkl"]   +=    WABEJ[    "abej"]*T(3)[  "ecdikl"];
+    T4["abcdijkl"]   -=    WAMIJ[    "amij"]*T(3)[  "bcdmkl"];
 
     T4.weight({&D.getDA(), &D.getDI()}, {&D.getDa(), &D.getDi()});
 
     Q(2)[    "abij"]  =  0.25*VMNEF[  "mnef"]*  T4["abefijmn"];
     
-    Q(3)[  "abcijk"]  =         FME[    "me"]*  T4["abceijkm"];
-    Q(3)[  "abcijk"] +=   0.5*WAMEF[  "amef"]*  T4["efbcimjk"];
-    Q(3)[  "abcijk"] -=   0.5*WMNEJ[  "mnek"]*  T4["abecijmn"];
+    Q(3)[  "abcijk"]  =         fME[    "me"]*  T4["abceijkm"];
+    Q(3)[  "abcijk"] +=   0.5*VAMEF[  "amef"]*  T4["efbcimjk"];
+    Q(3)[  "abcijk"] -=   0.5*VMNEJ[  "mnek"]*  T4["abecijmn"];
     
-    Z(2)[    "abij"] +=                       Q(2)[    "abij"];
-    Z(3)[    "abcijk"] +=                       Q(3)[  "abcijk"];
+    Z(2)[    "abij"] +=                      Q(2)[    "abij"];
+    Z(3)[  "abcijk"] +=                      Q(3)[  "abcijk"];
+    
+    QABCNFIJK["abcnfijk"] =        VMNEF["mnef"]*  T4["abceijkm"];
+    QBCNIJK["bcnijk"]     =        VMNEF["nmef"]*  T4["efbcimjk"];
+    QABCFIJ["abcfij"]     =        VMNEF["mnef"]*  T4["abecijmn"];
+
+    Z(3)["abcijk"]   +=    QABCNFIJK["abcnfijk"]*T(1)[      "fn"];
+    Z(3)["abcijk"]   -=  0.5*QBCNIJK[  "bcnijk"]*T(1)[      "an"];
+    Z(3)["abcijk"]   -=  0.5*QABCFIJ[  "abcfij"]*T(1)[      "fj"];
     /*
      **************************************************************************/
 
@@ -342,16 +378,22 @@ void CCSDTQ_3<U>::subiterate(const Arena& arena)
     auto& D   = this->template gettmp<Denominator       <U  >>(   "D");
     auto& Tau = this->template gettmp<SpinorbitalTensor <U  >>( "Tau");
 
-    auto&     FME = this->template gettmp<SpinorbitalTensor<U>>(    "FME");
-    auto&     FAE = this->template gettmp<SpinorbitalTensor<U>>(    "FAE");
-    auto&     FMI = this->template gettmp<SpinorbitalTensor<U>>(    "FMI");
-    auto&   WMNIJ = this->template gettmp<SpinorbitalTensor<U>>(  "WMNIJ");
-    auto&   WMNEJ = this->template gettmp<SpinorbitalTensor<U>>(  "WMNEJ");
-    auto&   WAMIJ = this->template gettmp<SpinorbitalTensor<U>>(  "WAMIJ");
-    auto&   WAMEI = this->template gettmp<SpinorbitalTensor<U>>(  "WAMEI");
-    auto&   WABEF = this->template gettmp<SpinorbitalTensor<U>>(  "WABEF");
-    auto&   WABEJ = this->template gettmp<SpinorbitalTensor<U>>(  "WABEJ");
-    auto&   WAMEF = this->template gettmp<SpinorbitalTensor<U>>(  "WAMEF");
+    auto&       FME = this->template gettmp<SpinorbitalTensor<U>>(      "FME");
+    auto&       FAE = this->template gettmp<SpinorbitalTensor<U>>(      "FAE");
+    auto&       FMI = this->template gettmp<SpinorbitalTensor<U>>(      "FMI");
+    auto&     WMNIJ = this->template gettmp<SpinorbitalTensor<U>>(    "WMNIJ");
+    auto&     WMNEJ = this->template gettmp<SpinorbitalTensor<U>>(    "WMNEJ");
+    auto&     WAMIJ = this->template gettmp<SpinorbitalTensor<U>>(    "WAMIJ");
+    auto&     WAMEI = this->template gettmp<SpinorbitalTensor<U>>(    "WAMEI");
+    auto&     WABEF = this->template gettmp<SpinorbitalTensor<U>>(    "WABEF");
+    auto&     WABEJ = this->template gettmp<SpinorbitalTensor<U>>(    "WABEJ");
+    auto&     WAMEF = this->template gettmp<SpinorbitalTensor<U>>(    "WAMEF");
+    auto&     qAMIJ = this->template gettmp<SpinorbitalTensor<U>>(    "qAMIJ");
+    auto&     qABEJ = this->template gettmp<SpinorbitalTensor<U>>(    "qABEJ");
+    auto&   qABNFIJ = this->template gettmp<SpinorbitalTensor<U>>(  "qABNFIJ");
+    auto&   QBCNIJK = this->template gettmp<SpinorbitalTensor<U>>(  "QBCNIJK");
+    auto&   QABCFIJ = this->template gettmp<SpinorbitalTensor<U>>(  "QABCFIJ");
+    auto& QABCNFIJK = this->template gettmp<SpinorbitalTensor<U>>("QABCNFIJK");
 
     Tau["abij"]  = T(2)["abij"];
     Tau["abij"] += 0.5*T(1)["ai"]*T(1)["bj"];
@@ -471,8 +513,11 @@ void CCSDTQ_3<U>::subiterate(const Arena& arena)
     /*
        T4 ->   T(3) and   T4 -> T(2)
     */
-    Z(2)[    "abij"] +=                  Q(2)[    "abij"];
-    Z(3)[    "abcijk"] +=                  Q(3)[  "abcijk"];
+    Z(2)[  "abij"]   +=                          Q(2)[  "abij"];
+    Z(3)["abcijk"]   +=                          Q(3)["abcijk"];
+    Z(3)["abcijk"]   +=    QABCNFIJK["abcnfijk"]*T(1)[    "fn"];
+    Z(3)["abcijk"]   -=  0.5*QBCNIJK[  "bcnijk"]*T(1)[    "an"];
+    Z(3)["abcijk"]   -=  0.5*QABCFIJ[  "abcfij"]*T(1)[    "fj"];
     /*
      **************************************************************************/
 
@@ -483,12 +528,20 @@ void CCSDTQ_3<U>::subiterate(const Arena& arena)
     {
         q(1)[    "ai"]  = 0.25*VMNEF["mnef"]*  T(3)["aefimn"];
 
-        q(2)[  "abij"]  =  0.5*WAMEF["bmef"]*  T(3)["aefijm"];
-        q(2)[  "abij"] -=  0.5*WMNEJ["mnej"]*  T(3)["abeinm"];
-        q(2)[  "abij"] +=        FME[  "me"]*  T(3)["abeijm"];
+        q(2)[  "abij"]  =  0.5*VAMEF["bmef"]*  T(3)["aefijm"];
+        q(2)[  "abij"] -=  0.5*VMNEJ["mnej"]*  T(3)["abeinm"];
+        q(2)[  "abij"] +=        fME[  "me"]*  T(3)["abeijm"];
         
         Z(1)[    "ai"] +=                    q(1)[    "ai"];
         Z(2)[  "abij"] +=                    q(2)[  "abij"];
+
+        qAMIJ["anij"]     =    VMNEF["nmef"]*T(3)["aefijm"];
+        qABEJ["abfi"]     =    VMNEF["mnef"]*T(3)["abeinm"];
+        qABNFIJ["abnfij"] =    VMNEF["mnef"]*T(3)["abeijm"];
+
+        Z(2)[  "abij"] +=  0.5*qAMIJ[  "bnij"]*T(1)[  "an"];
+        Z(2)[  "abij"] -=  0.5*qABEJ[  "abfi"]*T(1)[  "fj"];
+        Z(2)[  "abij"] +=    qABNFIJ["abnfij"]*T(1)[  "fn"];
     }
 
    /*
@@ -543,6 +596,9 @@ void CCSDTQ_3<U>::microiterate(const Arena& arena)
     auto&   WAMIJ = this->template gettmp<SpinorbitalTensor<U>>(  "WAMIJ");
     auto&   WAMEI = this->template gettmp<SpinorbitalTensor<U>>(  "WAMEI");
     auto&   WABEF = this->template gettmp<SpinorbitalTensor<U>>(  "WABEF");
+    auto&   qAMIJ = this->template gettmp<SpinorbitalTensor<U>>(  "qAMIJ");
+    auto&   qABEJ = this->template gettmp<SpinorbitalTensor<U>>(  "qABEJ");
+    auto& qABNFIJ = this->template gettmp<SpinorbitalTensor<U>>("qABNFIJ");
 
     Tau["abij"]  = T(2)["abij"];
     Tau["abij"] += 0.5*T(1)["ai"]*T(1)["bj"];
@@ -610,7 +666,10 @@ void CCSDTQ_3<U>::microiterate(const Arena& arena)
     /*
      T(4) -> T(2)
      */
-    Z(2)[  "abij"] +=               Q(2)[  "abij"];
+    Z(2)[  "abij"] +=                      Q(2)["abij"];
+    Z(2)["abij"]   +=  0.5*qAMIJ[  "bnij"]*T(1)[  "an"];
+    Z(2)["abij"]   -=  0.5*qABEJ[  "abfi"]*T(1)[  "fj"];
+    Z(2)["abij"]   +=    qABNFIJ["abnfij"]*T(1)[  "fn"];
     /*
      *************************************************************************/
     Z(2).weight({&D.getDA(), &D.getDI()}, {&D.getDa(), &D.getDi()});
