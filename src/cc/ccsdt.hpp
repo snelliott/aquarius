@@ -22,7 +22,7 @@ class CCSDT : public Subiterative<U>
 //class CCSDT : public Iterative<U>
 {
     protected:
-        convergence::DIIS<op::ExcitationOperator<U,3>> diis;
+        convergence::DIIS<op::ExcitationOperator<U,2>> diis;
         string guess;
 
     public:

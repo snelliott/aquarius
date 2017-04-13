@@ -23,7 +23,6 @@ CC4<U>::CC4(const string& name, Config& config)
     this->addProduct(Product("double", "S2", reqs));
     this->addProduct(Product("double", "multiplicity", reqs));
     this->addProduct(Product("cc4.T", "T", reqs));
-//   this->addProduct(Product("cc4.T(3)", "T(3)", reqs));
     this->addProduct(Product("cc4.T4", "T4", reqs));
     this->addProduct(Product("cc4.Hbar", "Hbar", reqs));
 }
@@ -44,21 +43,11 @@ bool CC4<U>::run(task::TaskDAG& dag, const Arena& arena)
     auto& T12 = this->puttmp("T1^2", new SpinorbitalTensor <U  >("T1^2", H.getABIJ()));
     auto& D   = this->puttmp(   "D", new Denominator       <U  >(H));
 
-//   auto& T(3)  = this->put   ("T(3)", new SpinorbitalTensor<U>("T(abc,ijk)", arena,
-//                                              H.getABIJ().getGroup(),
-//                                              {vrt, occ}, {3, 0},
-//                                              {0, 3}));
-//   
     auto& T4  = this->put   ("T4", new SpinorbitalTensor<U>("T(abcd,ijkl)", arena,
                                                H.getABIJ().getGroup(),
                                                {vrt, occ}, {4, 0},
                                                {0, 4}));
    
-//   auto& Z(3)  = this->puttmp("Z(3)", new SpinorbitalTensor<U>("Z(abc,ijk)", arena,
-//                                              H.getABIJ().getGroup(),
-//                                              {vrt, occ}, {3, 0},
-//                                              {0, 3}));
-//   
     this->puttmp(  "FAE", new SpinorbitalTensor<U>(   "F(ae)",   H.getAB()));
     this->puttmp(  "FMI", new SpinorbitalTensor<U>(   "F(mi)",   H.getIJ()));
     this->puttmp(  "FME", new SpinorbitalTensor<U>(   "F(me)",   H.getIA()));
@@ -160,9 +149,7 @@ void CC4<U>::iterate(const Arena& arena)
     auto& Z   = this->template gettmp<ExcitationOperator<U,3>>(   "Z");
     auto& Tau = this->template gettmp<SpinorbitalTensor <U  >>( "Tau");
     auto& T12 = this->template gettmp<SpinorbitalTensor <U  >>("T1^2");
-//   auto& T(3) = this->template  get   <SpinorbitalTensor<U   >>(  "T(3)");
     auto& T4 = this->template  get   <SpinorbitalTensor<U   >>(  "T4");
-//   auto& Z(3) = this->template  gettmp<SpinorbitalTensor<U   >>(  "Z(3)");
 
     auto&       FME = this->template gettmp<SpinorbitalTensor<U>>(      "FME");
     auto&       FAE = this->template gettmp<SpinorbitalTensor<U>>(      "FAE");
@@ -359,12 +346,10 @@ void CC4<U>::iterate(const Arena& arena)
     Z(3).weight({&D.getDA(), &D.getDI()}, {&D.getDa(), &D.getDi()});
     Z(2).weight({&D.getDA(), &D.getDI()}, {&D.getDa(), &D.getDi()});
     Z(1).weight({&D.getDA(), &D.getDI()}, {&D.getDa(), &D.getDi()});
-    //Z.weight(D);
     
     T(3) += Z(3);
     T(2) += Z(2);
     T(1) += Z(1);
-    //T  += Z;
 
     Tau["abij"]  = T(2)["abij"];
     Tau["abij"] += 0.5*T(1)["ai"]*T(1)["bj"];
@@ -372,7 +357,9 @@ void CC4<U>::iterate(const Arena& arena)
     this->energy() = real(scalar(H.getAI()*T(1))) + 0.25*real(scalar(H.getABIJ()*Tau));
     this->conv() = Z.norm(00);
 
-    diis.extrapolate(T, Z);
+    auto& Tdiis  = this->template get   <ExcitationOperator<U,2>>(  "T");
+    auto& Zdiis  = this->template gettmp<ExcitationOperator<U,2>>(  "Z");
+    diis.extrapolate(Tdiis,Zdiis);
 }
 
 template <typename U>
@@ -394,15 +381,13 @@ void CC4<U>::subiterate(const Arena& arena)
     const SpinorbitalTensor<U>& VAMIJ = H.getAIJK();
     const SpinorbitalTensor<U>& VAMEI = H.getAIBJ();
 
-    auto& T   = this->template get   <ExcitationOperator<U,3>>(   "T");
+    auto& T   = this->template get   <ExcitationOperator<U,2>>(   "T");
     auto& Q   = this->template gettmp<ExcitationOperator<U,3>>(   "Q");
     auto& q   = this->template gettmp<ExcitationOperator<U,2>>(   "q");
     auto& D   = this->template gettmp<Denominator       <U  >>(   "D");
-    auto& Z   = this->template gettmp<ExcitationOperator<U,3>>(   "Z");
+    auto& Z   = this->template gettmp<ExcitationOperator<U,2>>(   "Z");
     auto& Tau = this->template gettmp<SpinorbitalTensor <U  >>( "Tau");
     auto& T12 = this->template gettmp<SpinorbitalTensor <U  >>("T1^2");
-//   auto& T(3) = this->template  get   <SpinorbitalTensor<U   >>(  "T(3)");
-//   auto& Z(3) = this->template  gettmp<SpinorbitalTensor<U   >>(  "Z(3)");
 
     auto&       FME = this->template gettmp<SpinorbitalTensor<U>>(      "FME");
     auto&       FAE = this->template gettmp<SpinorbitalTensor<U>>(      "FAE");
@@ -562,13 +547,9 @@ void CC4<U>::subiterate(const Arena& arena)
         Z(2)[  "abij"] -=  0.5*qABEJ[  "abfi"]*T(1)[  "fj"];
         Z(2)[  "abij"] +=    qABNFIJ["abnfij"]*T(1)[  "fn"];
     }
-    Z(2).weight({&D.getDA(), &D.getDI()}, {&D.getDa(), &D.getDi()});
-    Z(1).weight({&D.getDA(), &D.getDI()}, {&D.getDa(), &D.getDi()});
-    //Z.weight(D);
     
-    T(2) += Z(2);
-    T(1) += Z(1);
-    //T  += Z;
+    Z.weight(D);
+    T  += Z;
 
     /*
      **************************************************************************/
@@ -601,12 +582,12 @@ void CC4<U>::microiterate(const Arena& arena)
     const SpinorbitalTensor<U>& VAMIJ = H.getAIJK();
     const SpinorbitalTensor<U>& VAMEI = H.getAIBJ();
 
-    auto& T   = this->template get   <ExcitationOperator<U,3>>(  "T");
+    auto& T   = this->template get   <ExcitationOperator<U,2>>(  "T");
     auto& T12 = this->template gettmp<SpinorbitalTensor <U  >>("T1^2");
     auto& Q   = this->template gettmp<ExcitationOperator<U,3>>(  "Q");
     auto& q   = this->template gettmp<ExcitationOperator<U,2>>(  "q");
     auto& D   = this->template gettmp<Denominator       <U  >>(  "D");
-    auto& Z   = this->template gettmp<ExcitationOperator<U,3>>(  "Z");
+    auto& Z   = this->template gettmp<ExcitationOperator<U,2>>(  "Z");
     auto& Tau = this->template gettmp<SpinorbitalTensor <U  >>("Tau");
 
     auto&     FME = this->template gettmp<SpinorbitalTensor<U>>(    "FME");
@@ -697,14 +678,10 @@ void CC4<U>::microiterate(const Arena& arena)
    /*
    **************************************************************************/
 
-    Z(2).weight({&D.getDA(), &D.getDI()}, {&D.getDa(), &D.getDi()});
-    Z(1).weight({&D.getDA(), &D.getDI()}, {&D.getDa(), &D.getDi()});
-    //Z.weight(D);
-    
-    T(2) += Z(2);
+    Z(1).weight({&D.getDA(),&D.getDI()},{&D.getDa(),&D.getDi()});
+    Z(2).weight({&D.getDa(),&D.getDi()},{&D.getDa(),&D.getDi()});
     T(1) += Z(1);
-    //T  += Z;
-
+    T(2) += Z(2);
 
     Tau["abij"]  = T(2)["abij"];
     Tau["abij"] += 0.5*T(1)["ai"]*T(1)["bj"];

@@ -20,11 +20,9 @@ LambdaCC4<U>::LambdaCC4(const string& name, Config& config)
     reqs.push_back(Requirement("moints", "H"));
     reqs.push_back(Requirement("cc4.Hbar", "Hbar"));
     reqs.push_back(Requirement("cc4.T", "T"));
-//    reqs.push_back(Requirement("cc4.T3", "T3"));
     this->addProduct(Product("double", "energy", reqs));
     this->addProduct(Product("double", "convergence", reqs));
     this->addProduct(Product("cc4.L", "L", reqs));
-    this->addProduct(Product("cc4.L3", "L3", reqs));
 }
 
 template <typename U>
@@ -37,19 +35,11 @@ bool LambdaCC4<U>::run(TaskDAG& dag, const Arena& arena)
     const Space& vrt = H.vrt;
     const PointGroup& group = occ.group;
 
-    this->put   (      "L", new DeexcitationOperator<U,2>("L", arena, occ, vrt));
+    this->put   (      "L", new DeexcitationOperator<U,3>("L", arena, occ, vrt));
     this->puttmp(      "D", new Denominator         <U  >(H));
-    this->puttmp(      "Z", new DeexcitationOperator<U,2>("Z", arena, occ, vrt));
+    this->puttmp(      "Z", new DeexcitationOperator<U,3>("Z", arena, occ, vrt));
     this->puttmp(      "Q", new DeexcitationOperator<U,3>("Q", arena, occ, vrt));
     this->puttmp(      "q", new DeexcitationOperator<U,2>("q", arena, occ, vrt));
-    this->puttmp(   "Z3", new SpinorbitalTensor   <U>("Z3", arena,
-                                                  H.getABIJ().getGroup(),
-                                                  {vrt, occ}, {0, 3},
-                                                  {3, 0}));
-    this->put   (   "L3", new SpinorbitalTensor   <U>("L3", arena,
-                                                  H.getABIJ().getGroup(),
-                                                  {vrt, occ}, {0, 3},
-                                                  {3, 0}));
     this->puttmp(    "DAB", new SpinorbitalTensor   <U  >(     "D(ab)", arena, group, {vrt,occ}, {1,0}, {1,0}));
     this->puttmp(    "DIJ", new SpinorbitalTensor   <U  >(     "D(ij)", arena, group, {vrt,occ}, {0,1}, {0,1}));
     this->puttmp(    "DAI", new SpinorbitalTensor   <U  >(     "D(ai)", arena, group, {vrt,occ}, {1,0}, {0,1}));
@@ -70,20 +60,35 @@ bool LambdaCC4<U>::run(TaskDAG& dag, const Arena& arena)
     this->puttmp("GAIJBCD", new SpinorbitalTensor   <U  >("G(aij,bcd)", arena, group, {vrt,occ}, {1,2}, {3,0}));
     this->puttmp("GIJKABL", new SpinorbitalTensor   <U  >("G(ijk,abl)", arena, group, {vrt,occ}, {0,3}, {2,1}));
 
+    auto& QEFGAMN = this->puttmp("QEFGAMN", new SpinorbitalTensor<U>("Q(efg,amn)", arena,
+                                               H.getABIJ().getGroup(),
+                                               {vrt, occ}, {3,0},
+                                               {1,2}));
+    auto& QEFIMNO = this->puttmp("QEFIMNO", new SpinorbitalTensor<U>("Q(efi,mno)", arena,
+                                               H.getABIJ().getGroup(),
+                                               {vrt, occ}, {2,1},
+                                               {0,3}));
+    auto& qEFIAMN = this->puttmp("qEFIAMN", new SpinorbitalTensor<U>("q(efi,amn)", arena,
+                                               H.getABIJ().getGroup(),
+                                               {vrt, occ}, {2,1},
+					       {1,2}));
+    auto& QEFGIAMNO = this->puttmp("QEFGIAMNO", new SpinorbitalTensor<U>("Q(efgi,amno)", arena,
+                                               H.getABIJ().getGroup(),
+                                               {vrt, occ}, {3,1},
+                                               {1,3}));
     this->puttmp("T4", new SpinorbitalTensor<U>("T(abcd,ijkl)", arena, group, {vrt, occ}, {4, 0}, {0, 4}));
     this->puttmp("L4", new SpinorbitalTensor<U>("L(ijkl,abcd)", arena, group, {vrt, occ}, {0, 4}, {4, 0}));
 
     auto& T = this->template get   <ExcitationOperator  <U,3>>("T");
-    auto& L = this->template get   <DeexcitationOperator<U,2>>("L");
-    auto& L3 = this->template get   <SpinorbitalTensor   <U >>("L3");
-    auto& Z = this->template gettmp<DeexcitationOperator<U,2>>("Z");
+    auto& L = this->template get   <DeexcitationOperator<U,3>>("L");
+    auto& Z = this->template gettmp<DeexcitationOperator<U,3>>("Z");
     auto& D = this->template gettmp<Denominator         <U  >>("D");
 
     Z(0) = 0;
     L(0) = 1;
     L(1)[    "ia"] = T(1)[  "ai"];
     L(2)[  "ijab"] = T(2)["abij"];
-    L3["ijkabc"] = 0;
+    L(3)["ijkabc"] = 0;
 
     const SpinorbitalTensor<U>& VMNEF = H.getIJAB();
     const SpinorbitalTensor<U>& VABEJ = H.getABCI();
@@ -96,6 +101,7 @@ bool LambdaCC4<U>::run(TaskDAG& dag, const Arena& arena)
 
     const SpinorbitalTensor<U>& WAMEF = Hbar.getAIBC();
     const SpinorbitalTensor<U>& WMNEJ = Hbar.getIJAK();
+    const SpinorbitalTensor<U>& WMNEF = Hbar.getIJAB();
 
     SpinorbitalTensor<U> T12(T(2));
     T12["abij"]  = 0.5*T(1)["ai"]*T(1)["bj"];
@@ -151,6 +157,11 @@ bool LambdaCC4<U>::run(TaskDAG& dag, const Arena& arena)
     WABMIJK["abmijk"]  = WTWAMEI["amek"]*T(2)["ebij"];
     WABMIJK["abmijk"] -= WTWMNIJ["nmjk"]*T(2)["abin"];
 
+    QEFGAMN["efgamn"]  = (1.0/ 12.0) * WMNEF["jkba"] * T4["befgjkmn"];
+    QEFIMNO["efimno"]  = (1.0/ 12.0) * WMNEF["ijab"] * T4["abefmjno"];
+    qEFIAMN["efiamn"]  =        0.25 * WMNEF["jiba"] * T(3)[  "befjmn"];
+    QEFGIAMNO["efgiamno"]=(1.0/ 36.0)* WMNEF["jiba"] * T4["befgjmno"];
+ 
     Subiterative<U>::run(dag, arena);
 
     this->put("energy", new U(this->energy()));
@@ -181,13 +192,10 @@ void LambdaCC4<U>::iterate(const Arena& arena)
     const SpinorbitalTensor<U>& VAMIJ = H.getAIJK();
 
     auto& T = this->template get   <ExcitationOperator  <U,3>>("T");
-    //auto& T = this->template get   <ExcitationOperator  <U,2>>("T");
-    auto& L = this->template get   <DeexcitationOperator<U,2>>("L");
+    auto& L = this->template get   <DeexcitationOperator<U,3>>("L");
     auto& D = this->template gettmp<Denominator         <U  >>("D");
-    auto& Z = this->template gettmp<DeexcitationOperator<U,2>>("Z");
+    auto& Z = this->template gettmp<DeexcitationOperator<U,3>>("Z");
     auto& Q = this->template gettmp<DeexcitationOperator<U,3>>("Q");
-    auto& L3 = this->template get   <SpinorbitalTensor<U  >>("L3");
-    auto& Z3 = this->template gettmp<SpinorbitalTensor<U  >>("Z3");
 
     auto& T4 = this->template gettmp<SpinorbitalTensor<U>>("T4");
     auto& L4 = this->template gettmp<SpinorbitalTensor<U>>("L4");
@@ -211,6 +219,9 @@ void LambdaCC4<U>::iterate(const Arena& arena)
     auto& WABMIJK = this->template gettmp<SpinorbitalTensor<U>>("WABMIJK");
     auto& GAIJBCD = this->template gettmp<SpinorbitalTensor<U>>("GAIJBCD");
     auto& GIJKABL = this->template gettmp<SpinorbitalTensor<U>>("GIJKABL");
+    auto& QEFGAMN = this->template gettmp<SpinorbitalTensor<U>>("QEFGAMN");
+    auto& QEFIMNO = this->template gettmp<SpinorbitalTensor<U>>("QEFIMNO");
+    auto& QEFGIAMNO = this->template gettmp<SpinorbitalTensor<U>>("QEFGIAMNO");
 
     /***************************************************************************
      *
@@ -252,17 +263,17 @@ void LambdaCC4<U>::iterate(const Arena& arena)
      *
      * Intermediates for Lambda-CCSDT
      */
-      DIJ[  "ij"]  =  (1.0/12.0)*T(3)["efgjmn"]*   L3["imnefg"]; //   DIJ[  "ij"]  =  (1.0/12.0)*  T3["efgjmn"]*   L3["imnefg"];
-      DAB[  "ab"]  = -(1.0/12.0)*T(3)["aefmno"]*   L3["mnobef"]; //   DAB[  "ab"]  = -(1.0/12.0)*  T3["aefmno"]*   L3["mnobef"];
-                                                                                            
-    GABCD["abcd"]  =   (1.0/6.0)*T(3)["abemno"]*   L3["mnocde"]; // GABCD["abcd"]  =   (1.0/6.0)*  T3["abemno"]*   L3["mnocde"];
-    GAIBJ["aibj"]  =       -0.25*T(3)["aefjmn"]*   L3["imnbef"]; // GAIBJ["aibj"]  =       -0.25*  T3["aefjmn"]*   L3["imnbef"];
-    GIJKL["ijkl"]  =   (1.0/6.0)*T(3)["efgklm"]*   L3["ijmefg"]; // GIJKL["ijkl"]  =   (1.0/6.0)*  T3["efgklm"]*   L3["ijmefg"];
+      DIJ[  "ij"]  =  (1.0/12.0)*T(3)["efgjmn"]* L(3)["imnefg"]; 
+      DAB[  "ab"]  = -(1.0/12.0)*T(3)["aefmno"]* L(3)["mnobef"]; 
                                                                  
-    GIJAK["ijak"]  =         0.5*T(2)[  "efkm"]*   L3["ijmaef"]; 
-    GAIBC["aibc"]  =        -0.5*T(2)[  "aemn"]*   L3["minbce"]; 
+    GABCD["abcd"]  =   (1.0/6.0)*T(3)["abemno"]* L(3)["mnocde"]; 
+    GAIBJ["aibj"]  =       -0.25*T(3)["aefjmn"]* L(3)["imnbef"]; 
+    GIJKL["ijkl"]  =   (1.0/6.0)*T(3)["efgklm"]* L(3)["ijmefg"]; 
+                                                               
+    GIJAK["ijak"]  =         0.5*T(2)[  "efkm"]* L(3)["ijmaef"]; 
+    GAIBC["aibc"]  =        -0.5*T(2)[  "aemn"]* L(3)["minbce"]; 
 
-      DAI[  "ai"]  =        0.25*T(3)["aefimn"]* L(2)[  "mnef"]; //DAI[  "ai"]  =        0.25*T3["aefimn"]* L(2)[  "mnef"];
+      DAI[  "ai"]  =        0.25*T(3)["aefimn"]* L(2)[  "mnef"];
       DAI[  "ai"] -=         0.5*T(2)[  "eamn"]*GIJAK[  "mnei"];
     /*
      **************************************************************************/
@@ -294,20 +305,20 @@ void LambdaCC4<U>::iterate(const Arena& arena)
     Z(2)["ijab"] -=     WMNEJ["ijem"]*GAIBC[  "emab"];
     Z(2)["ijab"] -=     WAMEF["emab"]*GIJAK[  "ijem"];
     Z(2)["ijab"] -=     WMNEJ["niam"]*GIJAK[  "mjbn"];
-    Z(2)["ijab"] += 0.5*WABEJ["efbm"]*   L3["ijmaef"];
-    Z(2)["ijab"] -= 0.5*WAMIJ["ejnm"]*   L3["imnabe"];
+    Z(2)["ijab"] += 0.5*WABEJ["efbm"]* L(3)["ijmaef"];
+    Z(2)["ijab"] -= 0.5*WAMIJ["ejnm"]* L(3)["imnabe"];
 
-    Z3["ijkabc"]  =     WMNEF["ijab"]* L(1)[    "kc"];
-    Z3["ijkabc"] +=       FME[  "ia"]* L(2)[  "jkbc"];
-    Z3["ijkabc"] +=     WAMEF["ekbc"]* L(2)[  "ijae"];
-    Z3["ijkabc"] -=     WMNEJ["ijam"]* L(2)[  "mkbc"];
-    Z3["ijkabc"] +=     WMNEF["ijae"]*GAIBC[  "ekbc"];
-    Z3["ijkabc"] -=     WMNEF["mkbc"]*GIJAK[  "ijam"];
-    Z3["ijkabc"] +=       FAE[  "ea"]*   L3["ijkebc"];
-    Z3["ijkabc"] -=       FMI[  "im"]*   L3["mjkabc"];
-    Z3["ijkabc"] += 0.5*WABEF["efab"]*   L3["ijkefc"];
-    Z3["ijkabc"] += 0.5*WMNIJ["ijmn"]*   L3["mnkabc"];
-    Z3["ijkabc"] +=     WAMEI["eiam"]*   L3["mjkbec"];
+    Z(3)["ijkabc"]  =     WMNEF["ijab"]* L(1)[    "kc"];
+    Z(3)["ijkabc"] +=       FME[  "ia"]* L(2)[  "jkbc"];
+    Z(3)["ijkabc"] +=     WAMEF["ekbc"]* L(2)[  "ijae"];
+    Z(3)["ijkabc"] -=     WMNEJ["ijam"]* L(2)[  "mkbc"];
+    Z(3)["ijkabc"] +=     WMNEF["ijae"]*GAIBC[  "ekbc"];
+    Z(3)["ijkabc"] -=     WMNEF["mkbc"]*GIJAK[  "ijam"];
+    Z(3)["ijkabc"] +=       FAE[  "ea"]* L(3)["ijkebc"];
+    Z(3)["ijkabc"] -=       FMI[  "im"]* L(3)["mjkabc"];
+    Z(3)["ijkabc"] += 0.5*WABEF["efab"]* L(3)["ijkefc"];
+    Z(3)["ijkabc"] += 0.5*WMNIJ["ijmn"]* L(3)["mnkabc"];
+    Z(3)["ijkabc"] +=     WAMEI["eiam"]* L(3)["mjkbec"];
     
     
     /*
@@ -318,19 +329,19 @@ void LambdaCC4<U>::iterate(const Arena& arena)
      * Lambda-CC4 iteration
      */
          L4["ijklabcd"]  =              WMNEF[    "ijab"]*   L(2)[    "klcd"];
-         L4["ijklabcd"] +=                FME[      "ia"]*     L3[  "jklbcd"];
-         L4["ijklabcd"] +=              WAMEF[    "ejab"]*     L3[  "iklecd"];
-         L4["ijklabcd"] -=              WMNEJ[    "ijam"]*     L3[  "mklbcd"];
+         L4["ijklabcd"] +=                FME[      "ia"]*   L(3)[  "jklbcd"];
+         L4["ijklabcd"] +=              WAMEF[    "ejab"]*   L(3)[  "iklecd"];
+         L4["ijklabcd"] -=              WMNEJ[    "ijam"]*   L(3)[  "mklbcd"];
 
     L4.weight({&D.getDA(), &D.getDI()}, {&D.getDa(), &D.getDi()});
 
-      GIJAK[    "ijak"]  =  (1.0/ 12.0)* T(3)[  "efgkmn"]*     L4["ijmnaefg"]; //GIJAK[    "ijak"]  =  (1.0/ 12.0)*   T3[  "efgkmn"]*     L4["ijmnaefg"];
-      GAIBC[    "aibc"]  = -(1.0/ 12.0)* T(3)[  "aefmno"]*     L4["minobcef"]; //GAIBC[    "aibc"]  = -(1.0/ 12.0)*   T3[  "aefmno"]*     L4["minobcef"];
+      GIJAK[    "ijak"]  =  (1.0/ 12.0)* T(3)[  "efgkmn"]*     L4["ijmnaefg"]; 
+      GAIBC[    "aibc"]  = -(1.0/ 12.0)* T(3)[  "aefmno"]*     L4["minobcef"]; 
 
-      GAIJK[    "aijk"]  =  (1.0/ 12.0)*   T4["aefgjkmn"]*     L3[  "imnefg"];
-      GABCI[    "abci"]  = -(1.0/ 12.0)*   T4["abefmino"]*     L3[  "mnocef"];
+     // GAIJK[    "aijk"]  =  (1.0/ 12.0)*   T4["aefgjkmn"]*   L(3)[  "imnefg"];
+     // GABCI[    "abci"]  = -(1.0/ 12.0)*   T4["abefmino"]*   L(3)[  "mnocef"];
 
-        DAI[      "ai"]  =  (1.0/ 36.0)*   T4["aefgimno"]*     L3[  "mnoefg"];
+     //   DAI[      "ai"]  =  (1.0/ 36.0)*   T4["aefgimno"]*   L(3)[  "mnoefg"];
 
     GIJKABL[  "ijkabl"]  =  (1.0/  2.0) *T(2)[    "eflm"]*     L4["ijkmabef"];
     GAIJBCD[  "aijbcd"]  = -(1.0/  2.0) *T(2)[    "aemn"]*     L4["mijnbcde"];
@@ -339,11 +350,11 @@ void LambdaCC4<U>::iterate(const Arena& arena)
       GAIBJ[    "aibj"]  =  (1.0/  2.0)* T(2)[    "eamn"]*GIJKABL[  "imnbej"];
       GIJKL[    "ijkl"]  =  (1.0/  4.0)* T(2)[    "efmk"]*GIJKABL[  "mijefl"];
 
-      Q(1)[      "ia"]  =              WMNEF[    "miea"]*    DAI[      "em"];
-      Q(1)[      "ia"] += (1.0/ 2.0)*  WMNEF[    "imef"]*  GABCI[    "efam"];
-      Q(1)[      "ia"] -= (1.0/ 2.0)*  WMNEF[    "mnea"]*  GAIJK[    "eimn"];
+      //Q(1)[      "ia"]  =              WMNEF[    "miea"]*    DAI[      "em"];
+      //Q(1)[      "ia"] += (1.0/ 2.0)*  WMNEF[    "imef"]*  GABCI[    "efam"];
+      //Q(1)[      "ia"] -= (1.0/ 2.0)*  WMNEF[    "mnea"]*  GAIJK[    "eimn"];
+      Q(1)[      "ia"]  =            WTWAMEI[    "eifm"]*  GAIBC[    "fmea"];
       Q(1)[      "ia"] -= (1.0/ 2.0)*WTWABEF[    "efga"]*  GAIBC[    "gief"];
-      Q(1)[      "ia"] +=            WTWAMEI[    "eifm"]*  GAIBC[    "fmea"];
       Q(1)[      "ia"] -=            WTWAMEI[    "eman"]*  GIJAK[    "inem"];
       Q(1)[      "ia"] += (1.0/ 2.0)*WTWMNIJ[    "imno"]*  GIJAK[    "noam"];
       Q(1)[      "ia"] -= (1.0/ 2.0)*  WAMEF[    "gief"]*  GABCD[    "efga"];
@@ -357,24 +368,32 @@ void LambdaCC4<U>::iterate(const Arena& arena)
       Q(3)[  "ijkabc"]  = (1.0/ 2.0)*WTWABEJ[    "efam"]*     L4["ijkmebcf"];
       Q(3)[  "ijkabc"] -= (1.0/ 2.0)*WTWAMIJ[    "eknm"]*     L4["ijmnabce"];
       
-      Z(1)[  "ia"] +=                                           Q(1)[  "ia"];
-      Z(2)["ijab"] +=                                           Q(2)["ijab"];
-      Z3["ijkabc"] +=                                         Q(3)["ijkabc"];
+      Z(1)[    "ia"] +=                                       Q(1)[    "ia"];
+      Z(2)[  "ijab"] +=                                       Q(2)[  "ijab"];
+      Z(3)["ijkabc"] +=                                       Q(3)["ijkabc"];
+
+      Z(1)[    "ia"] -=  (1.0/ 2.0)*  QEFGAMN["efgamn"] * L(3)[  "imnefg"];
+      Z(1)[    "ia"] -=  (1.0/ 2.0)*  QEFIMNO["efimno"] * L(3)[  "mnoaef"];
+      Z(1)[    "ia"] +=           QEFGIAMNO["efgiamno"] * L(3)[  "mnoefg"];
 
 
     /*
      **************************************************************************/
     
-    Z3.weight({&D.getDA(),&D.getDI()},{&D.getDA(),&D.getDI()});
-    L3 += Z3;
+    Z(3).weight({&D.getDA(),&D.getDI()},{&D.getDA(),&D.getDI()});
+    L(3) += Z(3);
 
-    Z.weight(D);
-    L += Z;
+    Z(2).weight({&D.getDA(),&D.getDI()},{&D.getDA(),&D.getDI()});
+    L(2) += Z(2);
+    Z(1).weight({&D.getDA(),&D.getDI()},{&D.getDA(),&D.getDI()});
+    L(1) += Z(1);
 
     this->energy() = 0.25*real(scalar(conj(WMNEF)*L(2)));
     this->conv() = Z.norm(00);
 
-    diis.extrapolate(L, Z);
+    auto& Ldiis  = this->template get   <DeexcitationOperator<U,2>>(  "L");
+    auto& Zdiis  = this->template gettmp<DeexcitationOperator<U,2>>(  "Z");
+    diis.extrapolate(Ldiis, Zdiis);
 }
 
 template <typename U>
@@ -399,14 +418,11 @@ void LambdaCC4<U>::subiterate(const Arena& arena)
     const SpinorbitalTensor<U>& VAMIJ = H.getAIJK();
 
     auto& T = this->template get   <ExcitationOperator  <U,3>>("T");
-    //auto& T = this->template get   <ExcitationOperator  <U,2>>("T");
-    auto& L = this->template get   <DeexcitationOperator<U,2>>("L");
+    auto& L = this->template get   <DeexcitationOperator<U,3>>("L");
     auto& D = this->template gettmp<Denominator         <U  >>("D");
-    auto& Z = this->template gettmp<DeexcitationOperator<U,2>>("Z");
+    auto& Z = this->template gettmp<DeexcitationOperator<U,3>>("Z");
     auto& Q = this->template gettmp<DeexcitationOperator<U,3>>("Q");
     auto& q = this->template gettmp<DeexcitationOperator<U,2>>("q");
-    auto& L3 = this->template get   <SpinorbitalTensor<U  >>("L3");
-    auto& Z3 = this->template gettmp<SpinorbitalTensor<U  >>("Z3");
 
 
     auto&     DIJ = this->template gettmp<SpinorbitalTensor<U>>(    "DIJ");
@@ -419,6 +435,10 @@ void LambdaCC4<U>::subiterate(const Arena& arena)
     auto&   GIJAK = this->template gettmp<SpinorbitalTensor<U>>(  "GIJAK");
     auto&   GABCI = this->template gettmp<SpinorbitalTensor<U>>(  "GABCI");
     auto&   GAIJK = this->template gettmp<SpinorbitalTensor<U>>(  "GAIJK");
+    auto& QEFGAMN = this->template gettmp<SpinorbitalTensor<U>>("QEFGAMN");
+    auto& QEFIMNO = this->template gettmp<SpinorbitalTensor<U>>("QEFIMNO");
+    auto& qEFIAMN = this->template gettmp<SpinorbitalTensor<U>>("qEFIAMN");
+    auto& QEFGIAMNO = this->template gettmp<SpinorbitalTensor<U>>("QEFGIAMNO");
 
     /***************************************************************************
      *
@@ -460,17 +480,17 @@ void LambdaCC4<U>::subiterate(const Arena& arena)
      *
      * Intermediates for Lambda-CCSDT
      */
-      DIJ[  "ij"]  =  (1.0/12.0)*T(3)["efgjmn"]*   L3["imnefg"]; //   DIJ[  "ij"]  =  (1.0/12.0)*  T3["efgjmn"]*   L3["imnefg"];
-      DAB[  "ab"]  = -(1.0/12.0)*T(3)["aefmno"]*   L3["mnobef"]; //   DAB[  "ab"]  = -(1.0/12.0)*  T3["aefmno"]*   L3["mnobef"];
-                                                                                            
-    GABCD["abcd"]  =   (1.0/6.0)*T(3)["abemno"]*   L3["mnocde"]; // GABCD["abcd"]  =   (1.0/6.0)*  T3["abemno"]*   L3["mnocde"];
-    GAIBJ["aibj"]  =       -0.25*T(3)["aefjmn"]*   L3["imnbef"]; // GAIBJ["aibj"]  =       -0.25*  T3["aefjmn"]*   L3["imnbef"];
-    GIJKL["ijkl"]  =   (1.0/6.0)*T(3)["efgklm"]*   L3["ijmefg"]; // GIJKL["ijkl"]  =   (1.0/6.0)*  T3["efgklm"]*   L3["ijmefg"];
+      DIJ[  "ij"]  =  (1.0/12.0)*T(3)["efgjmn"]* L(3)["imnefg"]; 
+      DAB[  "ab"]  = -(1.0/12.0)*T(3)["aefmno"]* L(3)["mnobef"]; 
                                                                  
-    GIJAK["ijak"]  =         0.5*T(2)[  "efkm"]*   L3["ijmaef"]; 
-    GAIBC["aibc"]  =        -0.5*T(2)[  "aemn"]*   L3["minbce"]; 
+    GABCD["abcd"]  =   (1.0/6.0)*T(3)["abemno"]* L(3)["mnocde"]; 
+    GAIBJ["aibj"]  =       -0.25*T(3)["aefjmn"]* L(3)["imnbef"]; 
+    GIJKL["ijkl"]  =   (1.0/6.0)*T(3)["efgklm"]* L(3)["ijmefg"]; 
+                                                               
+    GIJAK["ijak"]  =         0.5*T(2)[  "efkm"]* L(3)["ijmaef"]; 
+    GAIBC["aibc"]  =        -0.5*T(2)[  "aemn"]* L(3)["minbce"]; 
 
-      DAI[  "ai"]  =        0.25*T(3)["aefimn"]* L(2)[  "mnef"]; //DAI[  "ai"]  =        0.25*T3["aefimn"]* L(2)[  "mnef"];
+      DAI[  "ai"]  =        0.25*T(3)["aefimn"]* L(2)[  "mnef"];
       DAI[  "ai"] -=         0.5*T(2)[  "eamn"]*GIJAK[  "mnei"];
     /*
      **************************************************************************/
@@ -504,34 +524,40 @@ void LambdaCC4<U>::subiterate(const Arena& arena)
         Z(2)[  "ijab"] -=     WMNEJ["ijem"]*GAIBC[  "emab"];
         Z(2)[  "ijab"] -=     WAMEF["emab"]*GIJAK[  "ijem"];
         Z(2)[  "ijab"] -=     WMNEJ["niam"]*GIJAK[  "mjbn"];
-        Z(2)[  "ijab"] += 0.5*WABEJ["efbm"]*   L3["ijmaef"];
-        Z(2)[  "ijab"] -= 0.5*WAMIJ["ejnm"]*   L3["imnabe"];
+        Z(2)[  "ijab"] += 0.5*WABEJ["efbm"]* L(3)["ijmaef"];
+        Z(2)[  "ijab"] -= 0.5*WAMIJ["ejnm"]* L(3)["imnabe"];
+
+        Z(1)[    "ia"] -=  (1.0/ 2.0)*  QEFGAMN["efgamn"] * L(3)[  "imnefg"];
+        Z(1)[    "ia"] -=  (1.0/ 2.0)*  QEFIMNO["efimno"] * L(3)[  "mnoaef"];
+        Z(1)[    "ia"] +=           QEFGIAMNO["efgiamno"] * L(3)[  "mnoefg"]; 
     }
 
-    Z3["ijkabc"]  =     WMNEF["ijab"]* L(1)[    "kc"];
-    Z3["ijkabc"] +=       FME[  "ia"]* L(2)[  "jkbc"];
-    Z3["ijkabc"] +=     WAMEF["ekbc"]* L(2)[  "ijae"];
-    Z3["ijkabc"] -=     WMNEJ["ijam"]* L(2)[  "mkbc"];
-    Z3["ijkabc"] +=     WMNEF["ijae"]*GAIBC[  "ekbc"];
-    Z3["ijkabc"] -=     WMNEF["mkbc"]*GIJAK[  "ijam"];
-    Z3["ijkabc"] +=       FAE[  "ea"]*   L3["ijkebc"];
-    Z3["ijkabc"] -=       FMI[  "im"]*   L3["mjkabc"];
-    Z3["ijkabc"] += 0.5*WABEF["efab"]*   L3["ijkefc"];
-    Z3["ijkabc"] += 0.5*WMNIJ["ijmn"]*   L3["mnkabc"];
-    Z3["ijkabc"] +=     WAMEI["eiam"]*   L3["mjkbec"];
+    Z(3)["ijkabc"]  =     WMNEF["ijab"]* L(1)[    "kc"];
+    Z(3)["ijkabc"] +=       FME[  "ia"]* L(2)[  "jkbc"];
+    Z(3)["ijkabc"] +=     WAMEF["ekbc"]* L(2)[  "ijae"];
+    Z(3)["ijkabc"] -=     WMNEJ["ijam"]* L(2)[  "mkbc"];
+    Z(3)["ijkabc"] +=     WMNEF["ijae"]*GAIBC[  "ekbc"];
+    Z(3)["ijkabc"] -=     WMNEF["mkbc"]*GIJAK[  "ijam"];
+    Z(3)["ijkabc"] +=       FAE[  "ea"]* L(3)["ijkebc"];
+    Z(3)["ijkabc"] -=       FMI[  "im"]* L(3)["mjkabc"];
+    Z(3)["ijkabc"] += 0.5*WABEF["efab"]* L(3)["ijkefc"];
+    Z(3)["ijkabc"] += 0.5*WMNIJ["ijmn"]* L(3)["mnkabc"];
+    Z(3)["ijkabc"] +=     WAMEI["eiam"]* L(3)["mjkbec"];
         
     Z(1)[    "ia"] +=                                   Q(1)[  "ia"];
     Z(2)[  "ijab"] +=                                   Q(2)["ijab"];
-      Z3["ijkabc"] +=                                 Q(3)["ijkabc"];
+    Z(3)["ijkabc"] +=                                 Q(3)["ijkabc"];
 
     /*
      **************************************************************************/
     
-    Z3.weight({&D.getDA(),&D.getDI()},{&D.getDA(),&D.getDI()});
-    L3 += Z3;
+    Z(3).weight({&D.getDA(),&D.getDI()},{&D.getDA(),&D.getDI()});
+    L(3) += Z(3);
 
     if (this->config.get<int>("micro_iterations") != 0 )
     {
+         DAI[  "ai"]  = -0.5*T(2)["eamn"]*GIJAK[  "mnei"];
+
         q(1)[  "ia"]  =       FME[  "ie"]*  DAB[    "ea"]; 
         q(1)[  "ia"] -=       FME[  "ma"]*  DIJ[    "im"];
         q(1)[  "ia"] -=     WMNEJ["inam"]*  DIJ[    "mn"];
@@ -555,15 +581,24 @@ void LambdaCC4<U>::subiterate(const Arena& arena)
         q(2)["ijab"] -=     WMNEJ["ijem"]*GAIBC[  "emab"];
         q(2)["ijab"] -=     WAMEF["emab"]*GIJAK[  "ijem"];
         q(2)["ijab"] -=     WMNEJ["niam"]*GIJAK[  "mjbn"];
-        q(2)["ijab"] += 0.5*WABEJ["efbm"]*   L3["ijmaef"];
-        q(2)["ijab"] -= 0.5*WAMIJ["ejnm"]*   L3["imnabe"];
+        q(2)["ijab"] += 0.5*WABEJ["efbm"]* L(3)["ijmaef"];
+        q(2)["ijab"] -= 0.5*WAMIJ["ejnm"]* L(3)["imnabe"];
 
+        q(1)[    "ia"] -=  (1.0/ 2.0)*  QEFGAMN["efgamn"] * L(3)[  "imnefg"];
+        q(1)[    "ia"] -=  (1.0/ 2.0)*  QEFIMNO["efimno"] * L(3)[  "mnoaef"];
+        q(1)[    "ia"] +=           QEFGIAMNO["efgiamno"] * L(3)[  "mnoefg"];
+ 
         Z(1)[  "ia"] +=                      q(1)[  "ia"];
         Z(2)["ijab"] +=                      q(2)["ijab"];
+
+        Z(1)[ "ia"]  +=    qEFIAMN["efiamn"] * L(2)["mnef"];
     }
 
-    Z.weight(D);
-    L += Z;
+    Z(2).weight({&D.getDA(),&D.getDI()},{&D.getDA(),&D.getDI()});
+    L(2) += Z(2);
+    Z(1).weight({&D.getDA(),&D.getDI()},{&D.getDA(),&D.getDI()});
+    L(1) += Z(1);
+
     if (this->config.get<int>("print_subiterations")>0)
     {
         this->energy() = 0.25*real(scalar(conj(WMNEF)*L(2)));
@@ -590,7 +625,6 @@ void LambdaCC4<U>::microiterate(const Arena& arena)
    const SpinorbitalTensor<U>& WAMEI = Hbar.getAIBJ();
 
    auto& T = this->template get   <ExcitationOperator  <U,3>>("T");
-   //auto& T = this->template get   <ExcitationOperator  <U,2>>("T");
    auto& L = this->template get   <DeexcitationOperator<U,2>>("L");
    auto& D = this->template gettmp<Denominator         <U  >>("D");
    auto& Z = this->template gettmp<DeexcitationOperator<U,2>>("Z");
@@ -599,6 +633,7 @@ void LambdaCC4<U>::microiterate(const Arena& arena)
 
    auto&     DIJ = this->template gettmp<SpinorbitalTensor<U>>(    "DIJ");
    auto&     DAB = this->template gettmp<SpinorbitalTensor<U>>(    "DAB");
+   auto& qEFIAMN = this->template gettmp<SpinorbitalTensor<U>>("qEFIAMN");
 
    /***************************************************************************
     *
@@ -637,17 +672,20 @@ void LambdaCC4<U>::microiterate(const Arena& arena)
     *
     * Lambda-CCSDT iteration
     */
-   Z(1)[  "ia"] +=                   Q(1)[  "ia"];
-   Z(1)[  "ia"] +=                   q(1)[  "ia"];
-   Z(2)["ijab"] +=                   Q(2)["ijab"];
-   Z(2)["ijab"] +=                   q(2)["ijab"];
+   Z(1)[  "ia"] +=                        Q(1)[  "ia"];
+   Z(1)[  "ia"] +=                        q(1)[  "ia"];
+   Z(2)["ijab"] +=                        Q(2)["ijab"];
+   Z(2)["ijab"] +=                        q(2)["ijab"];
+   Z(1)[  "ia"] +=    qEFIAMN["efiamn"] * L(2)["mnef"];
    /*
     **************************************************************************/
 
    /***************************************************************************
     */
-   Z.weight(D);
-   L += Z;
+   Z(1).weight({&D.getDA(),&D.getDI()},{&D.getDa(),&D.getDi()});
+   Z(2).weight({&D.getDa(),&D.getDi()},{&D.getDa(),&D.getDi()});
+   L(1) += Z(1);
+   L(2) += Z(2);
    if (this->config.get<int>("print_subiterations")>0)
    {
        this->energy() = 0.25*real(scalar(conj(WMNEF)*L(2)));
